@@ -1,0 +1,4 @@
+{
+    "build": ["make"],
+    "run": ["./cppbot"]
+}

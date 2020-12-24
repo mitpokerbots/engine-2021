@@ -1,0 +1,5 @@
+__pycache__/
+*.txt
+*.class
+.DS_Store
+.idea/
