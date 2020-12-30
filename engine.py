@@ -56,12 +56,19 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
     '''
     Encodes the game tree for one board within a round.
     '''
+    def start_rounds(self):
+
+    
+    def proceed(self):
+        
 
 
 class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands', 'board_states', 'previous_state'])):
     '''
     Encodes the game tree for one round of poker.
     '''
+    def assign(self):
+        
 
     def showdown(self):
         '''
@@ -378,10 +385,11 @@ class Game():
         deck = eval7.Deck()
         deck.shuffle()
         hands = [deck.deal(NUM_BOARDS*2), deck.deal(NUM_BOARDS*2)]
-        stacks = [STARTING_STACK - SMALL_BLIND, STARTING_STACK - BIG_BLIND]
+        stacks = [STARTING_STACK - NUM_BOARDS*SMALL_BLIND, STARTING_STACK - NUM_BOARDS*BIG_BLIND]
         board_states = [BoardState(i+1, [SMALL_BLIND, BIG_BLIND], None, copy.deepcopy(deck).shuffle(), None) for i in range(NUM_BOARDS)]
+        # board_states assign
         round_state = RoundState(0, 0, stacks, hands, board_states, None)
-        while not isinstance(round_state, TerminalState):
+        while not isinstance(board_states, TerminalState):
             self.log_round_state(players, round_state)
             active = round_state.button % 2
             player = players[active]
