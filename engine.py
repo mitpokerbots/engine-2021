@@ -389,7 +389,7 @@ class Game():
         board_states = [BoardState(i+1, [SMALL_BLIND, BIG_BLIND], None, copy.deepcopy(deck).shuffle(), None) for i in range(NUM_BOARDS)]
         # board_states assign
         round_state = RoundState(0, 0, stacks, hands, board_states, None)
-        while not isinstance(board_states, TerminalState):
+        while False in [isinstance(board_state, TerminalState) for board_state in round_state.board_states]:
             self.log_round_state(players, round_state)
             active = round_state.button % 2
             player = players[active]
@@ -397,7 +397,7 @@ class Game():
             for i in range(NUM_BOARDS):
                 bet_override = (round_state.board_states[i].pips == [0, 0])
                 self.log_action(player.name, actions[i], i+1, bet_override)
-            round_state = round_state.proceed(action)
+            round_state = round_state.proceed(actions)
         self.log_terminal_state(players, round_state)
         for player, player_message, delta in zip(players, self.player_messages, round_state.deltas):
             player.query(round_state, player_message, self.log)
