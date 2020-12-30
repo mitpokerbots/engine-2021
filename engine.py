@@ -12,6 +12,7 @@ import socket
 import eval7
 import sys
 import os
+import copy
 
 sys.path.append(os.getcwd())
 from config import *
@@ -51,7 +52,13 @@ STATUS = lambda players: ''.join([PVALUE(p.name, p.bankroll) for p in players])
 # Action history is sent once, including the player's actions
 
 
-class RoundState(namedtuple('_RoundState', ['button', 'street', 'pips', 'stacks', 'hands', 'deck', 'previous_state'])):
+class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'previous_state'])):
+    '''
+    Encodes the game tree for one board within a round.
+    '''
+
+
+class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands', 'board_states', 'previous_state'])):
     '''
     Encodes the game tree for one round of poker.
     '''
@@ -329,22 +336,22 @@ class Game():
             self.player_messages[0].append(compressed_board)
             self.player_messages[1].append(compressed_board)
 
-    def log_action(self, name, action, bet_override):
+    def log_action(self, name, action, board_num, bet_override):
         '''
         Incorporates action information into the game log and player messages.
         '''
         if isinstance(action, FoldAction):
-            phrasing = ' folds'
-            code = 'F'
+            phrasing = ' folds on board ' + str(board_num)
+            code = 'F' + str(board_num)
         elif isinstance(action, CallAction):
-            phrasing = ' calls'
-            code = 'C'
+            phrasing = ' calls on board ' + str(board_num)
+            code = 'C' + str(board_num)
         elif isinstance(action, CheckAction):
-            phrasing = ' checks'
-            code = 'K'
+            phrasing = ' checks on board ' + str(board_num)
+            code = 'K' + str(board_num)
         else:  # isinstance(action, RaiseAction)
-            phrasing = (' bets ' if bet_override else ' raises to ') + str(action.amount)
-            code = 'R' + str(action.amount)
+            phrasing = (' bets ' if bet_override else ' raises to ') + str(action.amount) + ' on board ' + str(board_num)
+            code = 'R' + str(action.amount) + str(board_num)
         self.log.append(name + phrasing)
         self.player_messages[0].append(code)
         self.player_messages[1].append(code)
@@ -370,17 +377,18 @@ class Game():
         '''
         deck = eval7.Deck()
         deck.shuffle()
-        hands = [deck.deal(2), deck.deal(2)]
-        pips = [SMALL_BLIND, BIG_BLIND]
+        hands = [deck.deal(NUM_BOARDS*2), deck.deal(NUM_BOARDS*2)]
         stacks = [STARTING_STACK - SMALL_BLIND, STARTING_STACK - BIG_BLIND]
-        round_state = RoundState(0, 0, pips, stacks, hands, deck, None)
+        board_states = [BoardState(i+1, [SMALL_BLIND, BIG_BLIND], None, copy.deepcopy(deck).shuffle(), None) for i in range(NUM_BOARDS)]
+        round_state = RoundState(0, 0, stacks, hands, board_states, None)
         while not isinstance(round_state, TerminalState):
             self.log_round_state(players, round_state)
             active = round_state.button % 2
             player = players[active]
-            action = player.query(round_state, self.player_messages[active], self.log)
-            bet_override = (round_state.pips == [0, 0])
-            self.log_action(player.name, action, bet_override)
+            actions = player.query(round_state, self.player_messages[active], self.log)
+            for i in range(NUM_BOARDS):
+                bet_override = (round_state.board_states[i].pips == [0, 0])
+                self.log_action(player.name, actions[i], i+1, bet_override)
             round_state = round_state.proceed(action)
         self.log_terminal_state(players, round_state)
         for player, player_message, delta in zip(players, self.player_messages, round_state.deltas):
