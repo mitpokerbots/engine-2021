@@ -11,6 +11,9 @@ NUM_ROUNDS = 1000
 STARTING_STACK = 400
 BIG_BLIND = 2
 SMALL_BLIND = 1
+NUM_BOARDS = 3
+
+class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'previous_state'])):
 
 
 class RoundState(namedtuple('_RoundState', ['button', 'street', 'pips', 'stacks', 'hands', 'deck', 'previous_state'])):

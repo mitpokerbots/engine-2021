@@ -42,6 +42,7 @@ class Runner():
             code = 'R' + str(action.amount)
         self.socketfile.write(code + '\n')
         self.socketfile.flush()
+        # add changes that reflect new data type
 
     def run(self):
         '''
@@ -98,6 +99,7 @@ class Runner():
                     round_flag = True
                 elif clause[0] == 'Q':
                     return
+            # add changes that reflect new data type
             if round_flag:  # ack the engine
                 self.send(CheckAction())
             else:
