@@ -22,6 +22,7 @@ CallAction = namedtuple('CallAction', [])
 CheckAction = namedtuple('CheckAction', [])
 # we coalesce BetAction and RaiseAction for convenience
 RaiseAction = namedtuple('RaiseAction', ['amount'])
+AssignAction = namedtuple('AssignAction', ['cards'])
 TerminalState = namedtuple('TerminalState', ['deltas', 'previous_state'])
 
 STREET_NAMES = ['Flop', 'Turn', 'River']
@@ -343,25 +344,43 @@ class Game():
             self.player_messages[0].append(compressed_board)
             self.player_messages[1].append(compressed_board)
 
-    def log_action(self, name, action, board_num, bet_override):
+    def log_actions(self, name, actions, bet_overrides, active):
         '''
         Incorporates action information into the game log and player messages.
         '''
-        if isinstance(action, FoldAction):
+        codes = [self.log_board_action(name, actions[i], bet_overrides[i], i+1) for i in range(NUM_BOARDS)]
+        code = ';'.join(codes)
+        if 'A' in code:
+            self.player_messages[active].append(code)
+            self.player_messages[1-active].append('A')
+        else:
+            self.player_messages[0].append(code)
+            self.player_messages[1].append(code)
+
+
+    def log_board_action(self, name, action, bet_override, board_num):
+        '''
+        Incorporates action information from a single board into the game log.
+
+        Returns code for a single action on one board.
+        '''
+        if isinstance(action, AssignAction):
+            phrasing = ' assigns ' + PCARDS(action.cards) + ' to board ' + str(board_num)
+            code = str(board_num) + 'A' + CCARDS(action.cards)
+        elif isinstance(action, FoldAction):
             phrasing = ' folds on board ' + str(board_num)
-            code = 'F' + str(board_num)
+            code = str(board_num) + 'F'
         elif isinstance(action, CallAction):
             phrasing = ' calls on board ' + str(board_num)
-            code = 'C' + str(board_num)
+            code = str(board_num) + 'C'
         elif isinstance(action, CheckAction):
             phrasing = ' checks on board ' + str(board_num)
-            code = 'K' + str(board_num)
+            code = str(board_num) + 'K' + str(board_num)
         else:  # isinstance(action, RaiseAction)
             phrasing = (' bets ' if bet_override else ' raises to ') + str(action.amount) + ' on board ' + str(board_num)
-            code = 'R' + str(action.amount) + str(board_num)
+            code = str(board_num) + 'R' + str(action.amount)
         self.log.append(name + phrasing)
-        self.player_messages[0].append(code)
-        self.player_messages[1].append(code)
+        return code
 
     def log_terminal_state(self, players, round_state):
         '''
@@ -394,9 +413,8 @@ class Game():
             active = round_state.button % 2
             player = players[active]
             actions = player.query(round_state, self.player_messages[active], self.log)
-            for i in range(NUM_BOARDS):
-                bet_override = (round_state.board_states[i].pips == [0, 0])
-                self.log_action(player.name, actions[i], i+1, bet_override)
+            bet_overrides = [(round_state.board_states[i].pips == [0, 0]) for i in range(NUM_BOARDS)]
+            self.log_actions(player.name, actions, bet_overrides, active)
             round_state = round_state.proceed(actions)
         self.log_terminal_state(players, round_state)
         for player, player_message, delta in zip(players, self.player_messages, round_state.deltas):
