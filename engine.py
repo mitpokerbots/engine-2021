@@ -109,7 +109,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
     Encodes the game tree for one round of poker.
     '''
     def assign(self):
-        
+        pass
 
     def showdown(self):
         '''
