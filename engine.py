@@ -77,7 +77,7 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
         '''
         active = button % 2
         if self.hands is None:
-            return {FoldAction, AssignAction}
+            return {AssignAction}
         continue_cost = self.pips[1-active] - self.pips[active]
         if continue_cost == 0:
             # we can only raise the stakes if both players can afford it
