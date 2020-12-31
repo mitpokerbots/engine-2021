@@ -63,7 +63,6 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
     def proceed(self):
         
 
-
 class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands', 'board_states', 'previous_state'])):
     '''
     Encodes the game tree for one round of poker.
@@ -270,7 +269,7 @@ class Player():
                 except TypeError:
                     pass
 
-    def query(self, round_state, player_message, game_log):
+    def query(self, round_state, player_message, game_log, index):
         '''
         Requests NUM_BOARDS actions from the pokerbot over the socket connection.
         At the end of the round, we request a CheckAction from the pokerbot.
@@ -291,7 +290,14 @@ class Player():
                     raise socket.timeout
                 clauses = clauses.split(';')
                 assert (len(clauses) == NUM_BOARDS)
-                return [self.query_board(round_state.board_states[i], clauses[i], game_log) for i in range(NUM_BOARDS)]
+                actions = [self.query_board(round_state.board_states[i], clauses[i], game_log) for i in range(NUM_BOARDS)]
+                if all(isinstance(a, AssignAction) for a in actions):
+                    if set().union(*[set(a.cards) for a in actions]) == set(round_state.hands[index]):
+                        return actions
+                    #else: (assigned cards not in hand or some cards unassigned)
+                    game_log.append(self.name + ' attempted illegal assignment')
+                else:
+                    return actions
             except socket.timeout:
                 error_message = self.name + ' ran out of time'
                 game_log.append(error_message)
@@ -375,7 +381,6 @@ class Game():
             self.player_messages[0].append(code)
             self.player_messages[1].append(code)
 
-
     def log_board_action(self, name, action, bet_override, board_num):
         '''
         Incorporates action information from a single board into the game log.
@@ -430,7 +435,7 @@ class Game():
             self.log_round_state(players, round_state)
             active = round_state.button % 2
             player = players[active]
-            actions = player.query(round_state, self.player_messages[active], self.log)
+            actions = player.query(round_state, self.player_messages[active], self.log, active)
             bet_overrides = [(round_state.board_states[i].pips == [0, 0]) for i in range(NUM_BOARDS)]
             self.log_actions(player.name, actions, bet_overrides, active)
             round_state = round_state.proceed(actions)
