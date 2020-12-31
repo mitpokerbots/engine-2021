@@ -468,7 +468,7 @@ class Game():
         board_states = [BoardState(i+1, [SMALL_BLIND, BIG_BLIND], None, copy.deepcopy(deck).shuffle(), None) for i in range(NUM_BOARDS)]
         # board_states assign
         round_state = RoundState(0, 0, stacks, hands, board_states, None)
-        while False in [isinstance(board_state, TerminalState) for board_state in round_state.board_states]:
+        while not isinstance(round_state, TerminalState):
             self.log_round_state(players, round_state)
             active = round_state.button % 2
             player = players[active]
