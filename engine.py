@@ -57,10 +57,22 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
     '''
     Encodes the game tree for one board within a round.
     '''
-    def legal_actions(self):
+    def legal_actions(self, button, stacks):
         '''
         Returns a set which corresponds to the active player's legal moves.
         '''
+        active = button % 2
+        if self.hands is None:
+            return {FoldAction, AssignAction}
+        continue_cost = self.pips[1-active] - self.pips[active]
+        if continue_cost == 0:
+            # we can only raise the stakes if both players can afford it
+            bets_forbidden = (stacks[0] == 0 or stacks[1] == 0)
+            return {CheckAction} if bets_forbidden else {CheckAction, RaiseAction}
+        # continue_cost > 0
+        # similarly, re-raising is only allowed if both players can afford it
+        raises_forbidden = (continue_cost == stacks[active] or stacks[1-active] == 0)
+        return {FoldAction, CallAction} if raises_forbidden else {FoldAction, CallAction, RaiseAction}
 
     def raise_bounds(self):
         '''
