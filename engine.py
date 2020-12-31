@@ -74,10 +74,15 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
         raises_forbidden = (continue_cost == stacks[active] or stacks[1-active] == 0)
         return {FoldAction, CallAction} if raises_forbidden else {FoldAction, CallAction, RaiseAction}
 
-    def raise_bounds(self):
+    def raise_bounds(self, button, stacks):
         '''
         Returns a tuple of the minimum and maximum legal raises.
         '''
+        active = button % 2
+        continue_cost = self.pips[1-active] - self.pips[active]
+        max_contribution = min(stacks[active], stacks[1-active] + continue_cost)
+        min_contribution = min(max_contribution, continue_cost + max(continue_cost, BIG_BLIND))
+        return (self.pips[active] + min_contribution, self.pips[active] + max_contribution)
 
     def proceed(self):
         '''
@@ -114,13 +119,10 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
 
     def raise_bounds(self):
         '''
-        Returns a tuple of the minimum and maximum legal raises.
+        Returns a tuple of the minimum and maximum legal raises summed across boards.
         '''
         active = self.button % 2
-        continue_cost = self.pips[1-active] - self.pips[active]
-        max_contribution = min(self.stacks[active], self.stacks[1-active] + continue_cost)
-        min_contribution = min(max_contribution, continue_cost + max(continue_cost, BIG_BLIND))
-        return (self.pips[active] + min_contribution, self.pips[active] + max_contribution)
+        return (0, self.stacks[active])
 
     def proceed_street(self):
         '''
