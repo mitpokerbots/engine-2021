@@ -59,7 +59,7 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
     '''
     def legal_actions(self, button, stacks):
         '''
-        Returns a set which corresponds to the active player's legal moves.
+        Returns a set which corresponds to the active player's legal moves on this board.
         '''
         active = button % 2
         if self.hands is None:
@@ -110,16 +110,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         '''
         Returns a set which corresponds to the active player's legal moves.
         '''
-        active = self.button % 2
-        continue_cost = self.pips[1-active] - self.pips[active]
-        if continue_cost == 0:
-            # we can only raise the stakes if both players can afford it
-            bets_forbidden = (self.stacks[0] == 0 or self.stacks[1] == 0)
-            return {CheckAction} if bets_forbidden else {CheckAction, RaiseAction}
-        # continue_cost > 0
-        # similarly, re-raising is only allowed if both players can afford it
-        raises_forbidden = (continue_cost == self.stacks[active] or self.stacks[1-active] == 0)
-        return {FoldAction, CallAction} if raises_forbidden else {FoldAction, CallAction, RaiseAction}
+        return [board_state.legal_actions(self.button, self.stacks) for board_state in self.board_states]
 
     def raise_bounds(self):
         '''
