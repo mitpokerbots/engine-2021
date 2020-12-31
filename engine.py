@@ -465,7 +465,7 @@ class Game():
         deck.shuffle()
         hands = [deck.deal(NUM_BOARDS*2), deck.deal(NUM_BOARDS*2)]
         stacks = [STARTING_STACK - NUM_BOARDS*SMALL_BLIND, STARTING_STACK - NUM_BOARDS*BIG_BLIND]
-        board_states = [BoardState(i+1, [SMALL_BLIND, BIG_BLIND], None, copy.deepcopy(deck).shuffle(), None) for i in range(NUM_BOARDS)]
+        board_states = [BoardState((i+1)*BIG_BLIND, [SMALL_BLIND, BIG_BLIND], None, copy.deepcopy(deck).shuffle(), None) for i in range(NUM_BOARDS)]
         # board_states assign
         round_state = RoundState(0, 0, stacks, hands, board_states, None)
         while not isinstance(round_state, TerminalState):
