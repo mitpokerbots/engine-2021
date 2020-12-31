@@ -57,6 +57,20 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
     '''
     Encodes the game tree for one board within a round.
     '''
+    def showdown(self):
+        '''
+        Compares the players' hands and computes payoffs.
+        '''
+        score0 = eval7.evaluate(self.deck.peek(5) + self.hands[0])
+        score1 = eval7.evaluate(self.deck.peek(5) + self.hands[1])
+        if score0 > score1:
+            winnings = [pot, 0]
+        elif score0 < score1:
+            winnings = [0, pot]
+        else:  # split the pot
+            winnings = [pot//2, pot//2]
+        return TerminalState(winnings, self)
+
     def legal_actions(self, button, stacks):
         '''
         Returns a set which corresponds to the active player's legal moves on this board.
@@ -101,15 +115,15 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         '''
         Compares the players' hands and computes payoffs.
         '''
-        score0 = eval7.evaluate(self.deck.peek(5) + self.hands[0])
-        score1 = eval7.evaluate(self.deck.peek(5) + self.hands[1])
-        if score0 > score1:
-            delta = STARTING_STACK - self.stacks[1]
-        elif score0 < score1:
-            delta = self.stacks[0] - STARTING_STACK
-        else:  # split the pot
-            delta = (self.stacks[0] - self.stacks[1]) // 2
-        return TerminalState([delta, -delta], self)
+        board_states = [board_state.showdown() for board_state in self.board_states]
+        net_winnings = [0, 0]
+        for board_state in self.board_states:
+            winnings = board_state.deltas
+            net_winnings[0] += winnings[0]
+            net_winnings[1] += winnings[1]
+        end_stacks = [stacks[0] + net_winnings[0], stacks[1] + net_winnings[1]]
+        deltas = [end_stacks[0] - STARTING_STACK, end_stacks[1] - STARTING_STACK]
+        return TerminalState(deltas, self)
 
     def legal_actions(self):
         '''
