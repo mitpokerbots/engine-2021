@@ -26,7 +26,7 @@ AssignAction = namedtuple('AssignAction', ['cards'])
 TerminalState = namedtuple('TerminalState', ['deltas', 'previous_state'])
 
 STREET_NAMES = ['Flop', 'Turn', 'River']
-DECODE = {'F': FoldAction, 'C': CallAction, 'K': CheckAction, 'R': RaiseAction}
+DECODE = {'F': FoldAction, 'C': CallAction, 'K': CheckAction, 'R': RaiseAction, 'A': AssignAction}
 CCARDS = lambda cards: ','.join(map(str, cards))
 PCARDS = lambda cards: '[{}]'.format(' '.join(map(str, cards)))
 PVALUE = lambda name, value: ', {} ({})'.format(name, value)
@@ -272,10 +272,9 @@ class Player():
 
     def query(self, round_state, player_message, game_log):
         '''
-        Requests one action from the pokerbot over the socket connection.
+        Requests NUM_BOARDS actions from the pokerbot over the socket connection.
         At the end of the round, we request a CheckAction from the pokerbot.
         '''
-        legal_actions = round_state.legal_actions() if isinstance(round_state, RoundState) else {CheckAction}
         if self.socketfile is not None and self.game_clock > 0.:
             try:
                 player_message[0] = 'T{:.3f}'.format(self.game_clock)
@@ -284,24 +283,22 @@ class Player():
                 start_time = time.perf_counter()
                 self.socketfile.write(message)
                 self.socketfile.flush()
-                clause = self.socketfile.readline().strip()
+                clauses = self.socketfile.readline().strip()
                 end_time = time.perf_counter()
                 if ENFORCE_GAME_CLOCK:
                     self.game_clock -= end_time - start_time
                 if self.game_clock <= 0.:
                     raise socket.timeout
-                action = DECODE[clause[0]]
-                if action in legal_actions:
-                    if clause[0] == 'R':
-                        amount = int(clause[1:])
-                        min_raise, max_raise = round_state.raise_bounds()
-                        if min_raise <= amount <= max_raise:
-                            return action(amount)
-                    else:
-                        return action()
-                game_log.append(self.name + ' attempted illegal ' + action.__name__)
+                clauses = clauses.split(';')
+                assert (len(clauses) == NUM_BOARDS)
+                return [self.query_board(round_state.board_states[i], clauses[i], game_log) for i in range(NUM_BOARDS)]
             except socket.timeout:
                 error_message = self.name + ' ran out of time'
+                game_log.append(error_message)
+                print(error_message)
+                self.game_clock = 0.
+            except AssertionError:
+                error_message = self.name + ' did not submit ' + str(NUM_BOARDS) + ' actions'
                 game_log.append(error_message)
                 print(error_message)
                 self.game_clock = 0.
@@ -312,7 +309,28 @@ class Player():
                 self.game_clock = 0.
             except (IndexError, KeyError, ValueError):
                 game_log.append(self.name + ' response misformatted')
-        return CheckAction() if CheckAction in legal_actions else FoldAction()
+        return [CheckAction() if CheckAction in board_state.legal_actions() else FoldAction() for board_state in round_state.board_states]
+
+    def query_board(self, board_state, clause, game_log):
+        '''
+        Parses one action from the pokerbot for a specific board.
+        '''
+        legal_actions = board_state.legal_actions() if isinstance(board_state, BoardState) else {CheckAction}
+        action = DECODE[clause[1]]
+        if action in legal_actions:
+            if clause[1] == 'R':
+                amount = int(clause[2:])
+                min_raise, max_raise = round_state.raise_bounds()
+                if min_raise <= amount <= max_raise:
+                    return action(amount)
+            elif clause[1] == 'A':
+                cards_strings = clause[2:].split(',')
+                cards = [eval7.Card(s) for s in cards_strings]
+                return action(cards)
+            else:
+                return action()
+        game_log.append(self.name + ' attempted illegal ' + action.__name__)
+        return CheckAction() if CheckAction in legal_actions else FoldAction() 
 
 
 class Game():
