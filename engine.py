@@ -57,10 +57,20 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
     '''
     Encodes the game tree for one board within a round.
     '''
-    def start_rounds(self):
+    def legal_actions(self):
+        '''
+        Returns a set which corresponds to the active player's legal moves.
+        '''
 
-    
+    def raise_bounds(self):
+        '''
+        Returns a tuple of the minimum and maximum legal raises.
+        '''
+
     def proceed(self):
+        '''
+        Advances the game tree by one action performed by the active player on the current board.
+        '''
         
 
 class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands', 'board_states', 'previous_state'])):
@@ -326,7 +336,7 @@ class Player():
         if action in legal_actions:
             if clause[1] == 'R':
                 amount = int(clause[2:])
-                min_raise, max_raise = round_state.raise_bounds()
+                min_raise, max_raise = board_state.raise_bounds()
                 if min_raise <= amount <= max_raise:
                     return action(amount)
             elif clause[1] == 'A':
