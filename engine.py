@@ -71,11 +71,11 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
         score0 = eval7.evaluate(self.deck.peek(5) + self.hands[0])
         score1 = eval7.evaluate(self.deck.peek(5) + self.hands[1])
         if score0 > score1:
-            winnings = [pot, 0]
+            winnings = [self.pot, 0]
         elif score0 < score1:
-            winnings = [0, pot]
+            winnings = [0, self.pot]
         else:  # split the pot
-            winnings = [pot//2, pot//2]
+            winnings = [self.pot//2, self.pot//2]
         return TerminalState(winnings, self)
 
     def legal_actions(self, button, stacks):
@@ -194,7 +194,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
             if isinstance(new_board_states[i], BoardState) and isinstance(self.board_states[i], BoardState):
                 contribution += new_board_states[i].pips[active] - self.board_states[i].pips[active]
         new_stacks[active] -= contribution
-        settled = [(board_state.settled or isinstance(board_state, TerminalState)) for board_state in new_board_states]
+        settled = [(isinstance(board_state, TerminalState) or board_state.settled) for board_state in new_board_states]
         state = RoundState(self.button + 1, self.street, new_stacks, self.hands, new_board_states, self)
         return state.proceed_street() if all(settled) else state
 
