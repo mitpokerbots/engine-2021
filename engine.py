@@ -492,7 +492,7 @@ class Game():
             active = round_state.button % 2
             player = players[active]
             actions = player.query(round_state, self.player_messages[active], self.log, active)
-            bet_overrides = [(round_state.board_states[i].pips == [0, 0]) for i in range(NUM_BOARDS)]
+            bet_overrides = [(round_state.board_states[i].pips == [0, 0]) if isinstance(round_state.board_states[i], BoardState) else None for i in range(NUM_BOARDS)]
             self.log_actions(player.name, actions, bet_overrides, active)
             round_state = round_state.proceed(actions)
         self.log_terminal_state(players, round_state)
