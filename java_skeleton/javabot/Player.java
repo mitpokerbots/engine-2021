@@ -5,6 +5,7 @@ import javabot.skeleton.ActionType;
 import javabot.skeleton.GameState;
 import javabot.skeleton.State;
 import javabot.skeleton.TerminalState;
+import javabot.skeleton.BoardState;
 import javabot.skeleton.RoundState;
 import javabot.skeleton.Bot;
 import javabot.skeleton.Runner;
@@ -50,10 +51,15 @@ public class Player implements Bot {
      */
     public void handleRoundOver(GameState gameState, TerminalState terminalState, int active) {
         //int myDelta = terminalState.deltas.get(active);  // your bankroll change from this round
-        //RoundState previousState = (RoundState)(terminalState.previousState);  // RoundState before payoffs
+        // RoundState previousState = (RoundState)(terminalState.previousState);  // RoundState before payoffs
         //int street = previousState.street;  // 0, 3, 4, or 5 representing when this round ended
-        //List<String> myCards = previousState.hands.get(active);  // your cards
-        //List<String> oppCards = previousState.hands.get(1-active);  // opponent's cards or "" if not revealed
+        //List<List<String>> myCards = new ArrayList<List<String>>();
+        //List<List<String>> oppCards = new ArrayList<List<String>>();
+        //for (TerminalState terminalBoardState : previousState.boardStates) {
+        //    previousBoardState = (BoardState)(terminalBoardState.previousState);
+        //    myCards.add(previousBoardState.hands.get(active)); // your cards
+        //    oppCards.add(previousBoardState.hands.get(1-active)); // opponent's cards or "" if not revealed
+        //}
     }
 
     /**
