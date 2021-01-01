@@ -174,11 +174,12 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         Resets the players' pips and advances the game tree to the next round of betting.
         '''
         for board_state in self.board_states:
-            board_state.update_pot()
+            if isinstance(board_state, BoardState):
+                board_state.update_pot()
         if self.street == 5:
             return self.showdown()
         new_street = 3 if self.street == 0 else self.street + 1
-        new_board_states = [BoardState(old_board_state.pot, [0, 0], old_board_state.hands, old_board_state.deck, old_board_state) for old_board_state in self.board_states]
+        new_board_states = [BoardState(old_board_state.pot, [0, 0], old_board_state.hands, old_board_state.deck, old_board_state) if isinstance(old_board_state, BoardState) else old_board_state for old_board_state in self.board_states]
         return RoundState(1, new_street, self.stacks, self.hands, new_board_states, self)
 
     def proceed(self, actions):
