@@ -472,12 +472,21 @@ class Game():
         '''
         Incorporates TerminalState information into the game log and player messages.
         '''
-        previous_state = round_state.previous_state
-        if FoldAction not in previous_state.legal_actions():
-            self.log.append('{} shows {}'.format(players[0].name, PCARDS(previous_state.hands[0])))
-            self.log.append('{} shows {}'.format(players[1].name, PCARDS(previous_state.hands[1])))
-            self.player_messages[0].append('O' + CCARDS(previous_state.hands[1]))
-            self.player_messages[1].append('O' + CCARDS(previous_state.hands[0]))
+        previous_round = round_state.previous_state
+        log_message_zero = [''] * NUM_BOARDS
+        log_message_one = [''] * NUM_BOARDS
+        for i in range(NUM_BOARDS):
+            previous_board = previous_round.board_states[i].previous_state
+            if FoldAction not in previous_board.legal_actions():
+                self.log.append('{} shows {} on board {}'.format(players[0].name, PCARDS(previous_board.hands[0]), i+1))
+                self.log.append('{} shows {} on board {}'.format(players[1].name, PCARDS(previous_board.hands[1]), i+1))
+                log_message_zero[i] = str(i+1) + 'O' + CCARDS(previous_board.hands[1])
+                log_message_one[i] = str(i+1) + 'O' + CCARDS(previous_board.hands[0])
+            else:
+                log_message_zero[i] = str(i+1) + 'O'
+                log_message_one[i] = str(i+1) + 'O'
+        self.player_messages[0].append(';'.join(log_message_zero))
+        self.player_messages[1].append(';'.join(log_message_one))
         self.log.append('{} awarded {}'.format(players[0].name, round_state.deltas[0]))
         self.log.append('{} awarded {}'.format(players[1].name, round_state.deltas[1]))
         self.player_messages[0].append('D' + str(round_state.deltas[0]))
