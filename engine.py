@@ -454,7 +454,7 @@ class Game():
             code = str(board_num) + 'C'
         elif isinstance(action, CheckAction):
             phrasing = ' checks on board ' + str(board_num)
-            code = str(board_num) + 'K' + str(board_num)
+            code = str(board_num) + 'K'
         else:  # isinstance(action, RaiseAction)
             phrasing = (' bets ' if bet_override else ' raises to ') + str(action.amount) + ' on board ' + str(board_num)
             code = str(board_num) + 'R' + str(action.amount)
