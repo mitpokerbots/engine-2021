@@ -147,15 +147,14 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         '''
         Compares the players' hands and computes payoffs.
         '''
-        board_states = [board_state.showdown() if isinstance(board_state, BoardState) else board_state for board_state in self.board_states]
+        terminal_board_states = [board_state.showdown() if isinstance(board_state, BoardState) else board_state for board_state in self.board_states]
         net_winnings = [0, 0]
-        for board_state in self.board_states:
-            winnings = board_state.deltas
-            net_winnings[0] += winnings[0]
-            net_winnings[1] += winnings[1]
+        for board_state in terminal_board_states:
+            net_winnings[0] += board_state.deltas[0]
+            net_winnings[1] += board_state.deltas[1]
         end_stacks = [self.stacks[0] + net_winnings[0], self.stacks[1] + net_winnings[1]]
         deltas = [end_stacks[0] - STARTING_STACK, end_stacks[1] - STARTING_STACK]
-        return TerminalState(deltas, self)
+        return TerminalState(deltas, RoundState(self.button, self.street, self.stacks, self.hands, terminal_board_states, self))
 
     def legal_actions(self):
         '''
@@ -339,7 +338,7 @@ class Player():
                     raise socket.timeout
                 clauses = clauses.split(';')
                 assert (len(clauses) == NUM_BOARDS)
-                actions = [self.query_board(round_state.board_states[i], clauses[i], game_log) for i in range(NUM_BOARDS)]
+                actions = [self.query_board(round_state.board_states[i], clauses[i], game_log) if isinstance(round_state, RoundState) else self.query_board(round_state.previous_state.board_states[i], clauses[i], game_log) for i in range(NUM_BOARDS)]
                 if all(isinstance(a, AssignAction) for a in actions):
                     if set().union(*[set(a.cards) for a in actions]) == set(round_state.hands[index]):
                         return actions
