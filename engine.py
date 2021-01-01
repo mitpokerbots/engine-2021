@@ -146,13 +146,13 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         '''
         Compares the players' hands and computes payoffs.
         '''
-        board_states = [board_state.showdown() for board_state in self.board_states]
+        board_states = [board_state.showdown() if isinstance(board_state, BoardState) else board_state for board_state in self.board_states]
         net_winnings = [0, 0]
         for board_state in self.board_states:
             winnings = board_state.deltas
             net_winnings[0] += winnings[0]
             net_winnings[1] += winnings[1]
-        end_stacks = [stacks[0] + net_winnings[0], stacks[1] + net_winnings[1]]
+        end_stacks = [self.stacks[0] + net_winnings[0], self.stacks[1] + net_winnings[1]]
         deltas = [end_stacks[0] - STARTING_STACK, end_stacks[1] - STARTING_STACK]
         return TerminalState(deltas, self)
 
