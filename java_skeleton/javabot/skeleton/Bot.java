@@ -29,7 +29,7 @@ public interface Bot {
      * @param gameState The GameState object.
      * @param roundState The RoundState object.
      * @param active Your player's index.
-     * @return Your action.
+     * @return Your list of actions.
      */
     public Action getAction(GameState gameState, RoundState roundState, int active);
 }
