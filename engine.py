@@ -160,7 +160,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         '''
         Returns a set which corresponds to the active player's legal moves.
         '''
-        return [board_state.legal_actions(self.button, self.stacks) for board_state in self.board_states]
+        return [board_state.legal_actions(self.button, self.stacks) if isinstance(board_state, BoardState) else {CheckAction} for board_state in self.board_states]
 
     def raise_bounds(self):
         '''
