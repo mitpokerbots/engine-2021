@@ -31,6 +31,7 @@ CCARDS = lambda cards: ','.join(map(str, cards))
 PCARDS = lambda cards: '[{}]'.format(' '.join(map(str, cards)))
 PVALUE = lambda name, value: ', {} ({})'.format(name, value)
 STATUS = lambda players: ''.join([PVALUE(p.name, p.bankroll) for p in players])
+POTVAL = lambda value: ', ({})'.format(value)
 
 # Socket encoding scheme:
 #
@@ -408,7 +409,7 @@ class Game():
         '''
         Incorporates RoundState information into the game log and player messages.
         '''
-        if round_state.street == 0 and round_state.button == 0:
+        if round_state.street == 0 and round_state.button == -2:
             self.log.append('{} posts the blind of {}'.format(players[0].name, SMALL_BLIND))
             self.log.append('{} posts the blind of {}'.format(players[1].name, BIG_BLIND))
             self.log.append('{} dealt {}'.format(players[0].name, PCARDS(round_state.hands[0])))
@@ -416,11 +417,18 @@ class Game():
             self.player_messages[0] = ['T0.', 'P0', 'H' + CCARDS(round_state.hands[0])]
             self.player_messages[1] = ['T0.', 'P1', 'H' + CCARDS(round_state.hands[1])]
         elif round_state.street > 0 and round_state.button == 1:
-            board = round_state.deck.peek(round_state.street)
-            self.log.append(STREET_NAMES[round_state.street - 3] + ' ' + PCARDS(board) +
-                            PVALUE(players[0].name, STARTING_STACK-round_state.stacks[0]) +
-                            PVALUE(players[1].name, STARTING_STACK-round_state.stacks[1]))
-            compressed_board = 'B' + CCARDS(board)
+            boards = [board_state.deck.peek(round_state.street) if isinstance(board_state, BoardState) else board_state.previous_state.deck.peek(round_state.street) for board_state in round_state.board_states]
+            for i in range(NUM_BOARDS):
+                log_message = STREET_NAMES[round_state.street - 3] + ' ' + PCARDS(boards[i])
+                if isinstance(round_state.board_states[i], BoardState):
+                    log_message += POTVAL(round_state.board_states[i].pot)
+                else:
+                    log_message += POTVAL(round_state.board_states[i].previous_state.pot)
+                log_message += PVALUE(players[0].name, round_state.stacks[0])
+                log_message += PVALUE(players[1].name, round_state.stacks[1])
+                log_message += ' on board ' + str(i+1)
+                self.log.append(log_message)
+            compressed_board = ';'.join([str(i+1) + 'B' + CCARDS(boards[i]) for i in range(NUM_BOARDS)])
             self.player_messages[0].append(compressed_board)
             self.player_messages[1].append(compressed_board)
 
@@ -432,7 +440,7 @@ class Game():
         code = ';'.join(codes)
         if 'A' in code:
             self.player_messages[active].append(code)
-            self.player_messages[1-active].append('A')
+            self.player_messages[1-active].append('S')
         else:
             self.player_messages[0].append(code)
             self.player_messages[1].append(code)
