@@ -11,15 +11,15 @@ import java.lang.String;
 public class Action {
     public ActionType actionType;
     public int amount;
-    public List<List<String>> assignment;
+    public List<String> cards;
 
     public Action(ActionType actionType) {
         this.actionType = actionType;
         this.amount = 0;
-        this.assignment = Collections.unmodifiableList(
+        this.cards = Collections.unmodifiableList(
             Arrays.asList(
-                Collections.emptyList(),
-                Collections.emptyList()
+                new String(),
+                new String()
             )
         );
     }
@@ -27,21 +27,21 @@ public class Action {
     public Action(ActionType actionType, int amount) {
         this.actionType = actionType;
         this.amount = amount;
-        this.assignment = Collections.unmodifiableList(
+        this.cards = Collections.unmodifiableList(
             Arrays.asList(
-                Collections.emptyList(),
-                Collections.emptyList()
+                new String(),
+                new String()
             )
         );
     }
 
-    public Action(ActionType actionType, List<List<String>> assignment) {
+    public Action(ActionType actionType, List<String> cards) {
         this.actionType = actionType;
         this.amount = 0;
-        this.assignment = Collections.unmodifiableList(
+        this.cards = Collections.unmodifiableList(
             Arrays.asList(
-                Collections.unmodifiableList(assignment.get(0)),
-                Collections.unmodifiableList(assignment.get(1))
+                cards.get(0),
+                cards.get(1)
             )
         );
     }
