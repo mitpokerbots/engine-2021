@@ -85,15 +85,6 @@ public class RoundState extends State {
                 newPots[i] = adder.pot + adder.pips.stream().mapToInt(Integer::intValue).sum();
             }
         }
-        if (this.street == 5) {
-            return this.showdown();
-        }
-        int newStreet;
-        if (this.street == 0) {
-            newStreet = 3;
-        } else {
-            newStreet = this.street + 1;
-        }
         List<State> newBoardStates = new ArrayList<State>();
         for (int i = 0; i < State.NUM_BOARDS; i++) {
             if (this.boardStates.get(i) instanceof BoardState) {
@@ -102,6 +93,15 @@ public class RoundState extends State {
             } else {
                 newBoardStates.add(this.boardStates.get(i));
             }
+        }
+        if (this.street == 5) {
+            return (new RoundState(this.active, 5, this.stacks, this.hands, newBoardStates, this)).showdown();
+        }
+        int newStreet;
+        if (this.street == 0) {
+            newStreet = 3;
+        } else {
+            newStreet = this.street + 1;
         }
         return new RoundState(1, newStreet, this.stacks, this.hands, newBoardStates, this);
     }
