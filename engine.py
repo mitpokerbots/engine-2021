@@ -359,11 +359,11 @@ class Player():
                     for action in actions:
                         if isinstance(action, RaiseAction):
                             total_raise += action.amount
-                    min_raise, max_raise = round_state.raise_bounds()
+                    min_raise, max_raise = round_state.raise_bounds() if isinstance(round_state, RoundState) else (0, 0)
                     if min_raise <= total_raise <= max_raise:
                         return actions
                     #else: (attempted negative net raise or net raise larger than bankroll)
-                    game_log.append(self.name + " attempted illegal RaiseAction's")
+                    game_log.append(self.name + " attempted net illegal RaiseAction's")
             except socket.timeout:
                 error_message = self.name + ' ran out of time'
                 game_log.append(error_message)
