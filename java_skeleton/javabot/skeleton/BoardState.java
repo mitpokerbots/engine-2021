@@ -26,12 +26,16 @@ public class BoardState extends State {
                       List<String> deck, State previousState, boolean settled) {
         this.pot = pot;
         this.pips = Collections.unmodifiableList(pips);
-        this.hands = Collections.unmodifiableList(
-            Arrays.asList(
-                Collections.unmodifiableList(hands.get(0)),
-                Collections.unmodifiableList(hands.get(1))
-            )
-        );
+        if (hands == null) {
+            this.hands = null;
+        } else {
+            this.hands = Collections.unmodifiableList(
+                Arrays.asList(
+                    Collections.unmodifiableList(hands.get(0)),
+                    Collections.unmodifiableList(hands.get(1))
+                )
+            );
+        }
         this.deck = Collections.unmodifiableList(deck);
         this.previousState = previousState;
         this.settled = settled;
