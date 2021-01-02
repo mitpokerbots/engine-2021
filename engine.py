@@ -378,7 +378,7 @@ class Player():
                 self.game_clock = 0.
             except (IndexError, KeyError, ValueError):
                 game_log.append(self.name + ' response misformatted')
-        default_actions = round_state.legal_actions()
+        default_actions = round_state.legal_actions() if isinstance(round_state, RoundState) else [{CheckAction} for i in range(NUM_BOARDS)]
         return [CheckAction() if CheckAction in default else FoldAction() for default in default_actions]
 
     def query_board(self, board_state, clause, game_log):
@@ -524,7 +524,7 @@ class Game():
             round_state = round_state.proceed(actions)
         self.log_terminal_state(players, round_state)
         for player, player_message, delta in zip(players, self.player_messages, round_state.deltas):
-            player.query(round_state, player_message, self.log)
+            player.query(round_state, player_message, self.log, None)
             player.bankroll += delta
 
     def run(self):
