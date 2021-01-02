@@ -13,7 +13,7 @@ import java.lang.String;
  * Encodes the game tree for one board within a round.
  */
 public class BoardState extends State {
-    public int pot;
+    public final int pot;
     public final List<Integer> pips;
     public final List<List<String>> hands;
     public final List<String> deck;
@@ -42,13 +42,6 @@ public class BoardState extends State {
         this.deck = Collections.unmodifiableList(deck);
         this.previousState = previousState;
         this.settled = settled;
-    }
-
-    /**
-     * Adds player pips to pot.
-     */
-    public void updatePot() {
-        this.pot += this.pips.stream().mapToInt(Integer::intValue).sum();
     }
 
     /**
@@ -119,14 +112,14 @@ public class BoardState extends State {
                 return new BoardState(this.pot, this.pips, newHands, this.deck, this);
             }
             case FOLD_ACTION_TYPE: {
-                this.updatePot();
+                int newPot = this.pot + this.pips.stream().mapToInt(Integer::intValue).sum();
                 List<Integer> winnings;
                 if (active == 0) {
-                    winnings = Arrays.asList(0, this.pot);
+                    winnings = Arrays.asList(0, newPot);
                 } else {
-                    winnings = Arrays.asList(this.pot, 0);
+                    winnings = Arrays.asList(newPot, 0);
                 }
-                return new TerminalState(winnings, this);
+                return new TerminalState(winnings, new BoardState(new_pot, Arrays.asList(0, 0), this.hands, this.deck, this, true));
             }
             case CALL_ACTION_TYPE: {
                 if (button == 0) {  // sb calls bb

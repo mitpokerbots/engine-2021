@@ -17,7 +17,7 @@ public class RoundState extends State {
     public final int street;
     public final List<Integer> stacks;
     public final List<List<String>> hands;
-    public List<State> boardStates;
+    public final List<State> boardStates;
     public final State previousState;
 
     public RoundState(int button, int street, List<Integer> stacks, List<List<String>> hands,
@@ -78,30 +78,30 @@ public class RoundState extends State {
      * Resets the players' pips and advances the game tree to the next round of betting.
      */
     public State proceedStreet() {
+        int[] newPots = new int[State.NUM_BOARDS];
+        for (int i = 0; i < State.NUM_BOARDS; i++) {
+            if (this.boardStates.get(i) instanceof BoardState) {
+                BoardState adder = (BoardState)this.boardStates.get(i);
+                newPots[i] = adder.pot + adder.pips.stream().mapToInt(Integer::intValue).sum();
+            }
+        }
+        List<State> newBoardStates = new ArrayList<State>();
         for (int i = 0; i < State.NUM_BOARDS; i++) {
             if (this.boardStates.get(i) instanceof BoardState) {
                 BoardState bs = (BoardState)this.boardStates.get(i);
-                bs.updatePot();
-                this.boardStates.set(i, bs);
+                newBoardStates.add(new BoardState(newPots[i], Arrays.asList(0, 0), bs.hands, bs.deck, this.boardStates.get(i)));
+            } else {
+                newBoardStates.add(this.boardStates.get(i));
             }
         }
         if (this.street == 5) {
-            return this.showdown();
+            return (new RoundState(this.button, 5, this.stacks, this.hands, newBoardStates, this)).showdown();
         }
         int newStreet;
         if (this.street == 0) {
             newStreet = 3;
         } else {
             newStreet = this.street + 1;
-        }
-        List<State> newBoardStates = new ArrayList<State>();
-        for (State oldBoardState : this.boardStates) {
-            if (oldBoardState instanceof BoardState) {
-                BoardState bs = (BoardState)oldBoardState;
-                newBoardStates.add(new BoardState(bs.pot, Arrays.asList(0, 0), bs.hands, bs.deck, oldBoardState));
-            } else {
-                newBoardStates.add(oldBoardState);
-            }
         }
         return new RoundState(1, newStreet, this.stacks, this.hands, newBoardStates, this);
     }
