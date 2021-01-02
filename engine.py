@@ -54,17 +54,18 @@ POTVAL = lambda value: ', ({})'.format(value)
 # Action history is sent once, including the player's actions
 
 
-class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'previous_state', 'settled'], defaults=[False])):
+class SmallDeck(eval7.Deck):
+    '''
+    Provides method for creating new deck from existing eval7.Deck object.
+    '''
+    def __init__(self, existing_deck):
+        self.cards = [eval7.Card(str(card)) for card in existing_deck.cards]
+
+
+class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'previous_state', 'settled', 'reveal'], defaults=[False, True])):
     '''
     Encodes the game tree for one board within a round.
     '''
-    def update_pot(self):
-        '''
-        Add value of pips to the pot.
-        Method called at end of each betting round.
-        '''
-        self.pot += sum(self.pips)
-
     def showdown(self):
         '''
         Compares the players' hands and computes payoffs.
@@ -122,9 +123,9 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
                 new_hands[1-active] = opp_hands
             return BoardState(self.pot, self.pips, new_hands, self.deck, self)
         if isinstance(action, FoldAction):
-            self.update_pot()
-            winnings = [0, self.pot] if active == 0 else [self.pot, 0]
-            return TerminalState(winnings, self)
+            new_pot = self.pot + sum(self.pips)
+            winnings = [0, new_pot] if active == 0 else [new_pot, 0]
+            return TerminalState(winnings, BoardState(new_pot, [0, 0], self.hands, self.deck, self, True, False))
         if isinstance(action, CallAction):
             if button == 0: # sb calls bb
                 return BoardState(self.pot, [BIG_BLIND] * 2, self.hands, self.deck, self)
@@ -135,9 +136,9 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
             return BoardState(self.pot, new_pips, self.hands, self.deck, self, True)
         if isinstance(action, CheckAction):
             if (street == 0 and self.button > 0) or self.button > 1:  # both players acted
-                return BoardState(self.pot, self.pips, self.hands, self.deck, self, True)
+                return BoardState(self.pot, self.pips, self.hands, self.deck, self, True, self.reveal)
             # let opponent act
-            return BoardState(self.pot, self.pips, self.hands, self.deck, self, self.settled)
+            return BoardState(self.pot, self.pips, self.hands, self.deck, self, self.settled, self.reveal)
         # isinstance(action, RaiseAction)
         new_pips = list(self.pips)
         contribution = action.amount - new_pips[active]
@@ -179,13 +180,14 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         '''
         Resets the players' pips and advances the game tree to the next round of betting.
         '''
-        for board_state in self.board_states:
-            if isinstance(board_state, BoardState):
-                board_state.update_pot()
+        new_pots = [0]*NUM_BOARDS
+        for i in range(NUM_BOARDS):
+            if isinstance(self.board_states[i], BoardState):
+                new_pots[i] = self.board_states[i].pot + sum(self.board_states[i].pips)
         if self.street == 5:
             return self.showdown()
         new_street = 3 if self.street == 0 else self.street + 1
-        new_board_states = [BoardState(old_board_state.pot, [0, 0], old_board_state.hands, old_board_state.deck, old_board_state) if isinstance(old_board_state, BoardState) else old_board_state for old_board_state in self.board_states]
+        new_board_states = [BoardState(new_pots[i], [0, 0], self.board_states[i].hands, self.board_states[i].deck, self.board_states[i]) if isinstance(self.board_states[i], BoardState) else self.board_states[i] for i in range(NUM_BOARDS)]
         return RoundState(1, new_street, self.stacks, self.hands, new_board_states, self)
 
     def proceed(self, actions):
@@ -193,7 +195,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         Advances the game tree by one tuple of actions performed by the active player.
         '''
         new_board_states = [self.board_states[i].proceed(actions[i], self.button, self.street) if isinstance(self.board_states[i], BoardState) else self.board_states[i] for i in range(NUM_BOARDS)]
-        active = button % 2
+        active = self.button % 2
         new_stacks = list(self.stacks)
         contribution = 0
         for i in range(NUM_BOARDS):
@@ -377,7 +379,7 @@ class Player():
                 self.game_clock = 0.
             except (IndexError, KeyError, ValueError):
                 game_log.append(self.name + ' response misformatted')
-        default_actions = round_state.legal_actions()
+        default_actions = round_state.legal_actions() if isinstance(round_state, RoundState) else [{CheckAction} for i in range(NUM_BOARDS)]
         return [CheckAction() if CheckAction in default else FoldAction() for default in default_actions]
 
     def query_board(self, board_state, clause, game_log):
@@ -484,7 +486,7 @@ class Game():
         log_message_one = [''] * NUM_BOARDS
         for i in range(NUM_BOARDS):
             previous_board = previous_round.board_states[i].previous_state
-            if FoldAction not in previous_board.legal_actions():
+            if previous_board.reveal:
                 self.log.append('{} shows {} on board {}'.format(players[0].name, PCARDS(previous_board.hands[0]), i+1))
                 self.log.append('{} shows {} on board {}'.format(players[1].name, PCARDS(previous_board.hands[1]), i+1))
                 log_message_zero[i] = str(i+1) + 'O' + CCARDS(previous_board.hands[1])
@@ -506,8 +508,11 @@ class Game():
         deck = eval7.Deck()
         deck.shuffle()
         hands = [deck.deal(NUM_BOARDS*2), deck.deal(NUM_BOARDS*2)]
+        new_decks  = [SmallDeck(deck) for i in range(NUM_BOARDS)]
+        for new_deck in new_decks:
+            new_deck.shuffle()
         stacks = [STARTING_STACK - NUM_BOARDS*SMALL_BLIND, STARTING_STACK - NUM_BOARDS*BIG_BLIND]
-        board_states = [BoardState((i+1)*BIG_BLIND, [SMALL_BLIND, BIG_BLIND], None, copy.deepcopy(deck).shuffle(), None) for i in range(NUM_BOARDS)]
+        board_states = [BoardState((i+1)*BIG_BLIND, [SMALL_BLIND, BIG_BLIND], None, new_decks[i], None) for i in range(NUM_BOARDS)]
         # board_states assign
         round_state = RoundState(-2, 0, stacks, hands, board_states, None)
         while not isinstance(round_state, TerminalState):
@@ -520,7 +525,7 @@ class Game():
             round_state = round_state.proceed(actions)
         self.log_terminal_state(players, round_state)
         for player, player_message, delta in zip(players, self.player_messages, round_state.deltas):
-            player.query(round_state, player_message, self.log)
+            player.query(round_state, player_message, self.log, None)
             player.bankroll += delta
 
     def run(self):
