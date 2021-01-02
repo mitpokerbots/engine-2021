@@ -34,26 +34,32 @@ public class Runner {
     /**
      * Encodes an action and sends it to the engine.
      */
-    public void send(Action action) {
-        String code;
-        switch (action.actionType) {
-            case FOLD_ACTION_TYPE: {
-                code = "F";
-                break;
-            }
-            case CALL_ACTION_TYPE: {
-                code = "C";
-                break;
-            }
-            case CHECK_ACTION_TYPE: {
-                code = "K";
-                break;
-            }
-            default: {  // RAISE_ACTION_TYPE
-                code = "R" + Integer.toString(action.amount);
-                break;
+    public void send(List<Action> actions) {
+        String[] codes = new String[State.NUM_BOARDS];
+        for (int i = 0; i < State.NUM_BOARDS; i++) {
+            switch (actions.get(i).actionType) {
+                case ASSIGN_ACTION_TYPE: {
+                    codes[i] = i + "A" + String.join(",", action.cards);
+                }
+                case FOLD_ACTION_TYPE: {
+                    codes[i] = i + "F";
+                    break;
+                }
+                case CALL_ACTION_TYPE: {
+                    codes[i] = i + "C";
+                    break;
+                }
+                case CHECK_ACTION_TYPE: {
+                    codes[i] = i + "K";
+                    break;
+                }
+                default: {  // RAISE_ACTION_TYPE
+                    codes[i] = i + "R" + Integer.toString(action.amount);
+                    break;
+                }
             }
         }
+        String code = String.join(";", codes);
         this.outStream.println(code);
     }
 
@@ -162,10 +168,14 @@ public class Runner {
                 }
             }
             if (roundFlag) {  // ack the engine
-                this.send(new Action(ActionType.CHECK_ACTION_TYPE));
+                List<Action> ack = new ArrayList<Action>();
+                for (int i = 0; i < State.NUM_BOARDS; i++) {
+                    ack.add(new Action(ActionType.CHECK_ACTION_TYPE));
+                }
+                this.send(ack);
             } else {
-                Action action = this.pokerbot.getAction(gameState, (RoundState)roundState, active);
-                this.send(action);
+                List<Action> actions = this.pokerbot.getActions(gameState, (RoundState)roundState, active);
+                this.send(actions);
             }
         }
     }
