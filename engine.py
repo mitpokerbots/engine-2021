@@ -88,6 +88,7 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
             return {AssignAction}
         elif self.settled:
             return {CheckAction}
+        # board being played on
         continue_cost = self.pips[1-active] - self.pips[active]
         if continue_cost == 0:
             # we can only raise the stakes if both players can afford it
