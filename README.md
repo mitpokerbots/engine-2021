@@ -4,7 +4,7 @@ MIT Pokerbots engine for 2021 and skeleton bots in Python, Java, and C++.
 The command to run the engine is ```python3 engine.py```. The engine is configured via ```config.py```.
 
 ## Dependencies
- - python>=3.5
+ - python>=3.7
  - cython (pip install cython)
  - eval7 (pip install eval7)
  - Java>=8 for java_skeleton
