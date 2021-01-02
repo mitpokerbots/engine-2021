@@ -5,11 +5,13 @@ package javabot.skeleton;
  */
 public class GameState {
     public final int bankroll;
+    public final int oppBankroll;
     public final float gameClock;
     public final int roundNum;
 
-    public GameState(int bankroll, float gameClock, int roundNum) {
+    public GameState(int bankroll, int oppBankroll, float gameClock, int roundNum) {
         this.bankroll = bankroll;
+        this.oppBankroll = oppBankroll;
         this.gameClock = gameClock;
         this.roundNum = roundNum;
     }

@@ -119,7 +119,7 @@ public class BoardState extends State {
                 } else {
                     winnings = Arrays.asList(newPot, 0);
                 }
-                return new TerminalState(winnings, new BoardState(new_pot, Arrays.asList(0, 0), this.hands, this.deck, this, true));
+                return new TerminalState(winnings, new BoardState(newPot, Arrays.asList(0, 0), this.hands, this.deck, this, true));
             }
             case CALL_ACTION_TYPE: {
                 if (button == 0) {  // sb calls bb

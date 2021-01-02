@@ -68,7 +68,7 @@ public class Runner {
      * Reconstructs the game tree based on the action history received from the engine.
      */
     public void run() throws IOException {
-        GameState gameState = new GameState(0, (float)0., 1);
+        GameState gameState = new GameState(0, 0, (float)0., 1);
         List<State> boardStates = new ArrayList<State>();
         for (int i = 0; i < State.NUM_BOARDS; i++) {
             boardStates.add(new BoardState((i+1)*State.BIG_BLIND, Arrays.asList(0, 0),
@@ -86,7 +86,7 @@ public class Runner {
                 String leftover = clause.substring(1, clause.length());
                 switch (clause.charAt(0)) {
                     case 'T': {
-                        gameState = new GameState(gameState.bankroll, Float.parseFloat(leftover), gameState.roundNum);
+                        gameState = new GameState(gameState.bankroll, gameState.oppBankroll, Float.parseFloat(leftover), gameState.roundNum);
                         break;
                     }
                     case 'P': {
@@ -121,13 +121,16 @@ public class Runner {
                         break;
                     }
                     case 'D': {
-                        int delta = Integer.parseInt(leftover);
-                        List<Integer> deltas = new ArrayList<Integer>(Arrays.asList(-1 * delta, -1 * delta));
+                        String[] subclauses = clause.split(";");
+                        int delta = Integer.parseInt(subclauses[0].substring(1, subclauses[0].length()));
+                        int oppDelta = Integer.parseInt(subclauses[1].substring(1, subclauses[1].length()));
+                        List<Integer> deltas = new ArrayList<Integer>(Arrays.asList(delta, oppDelta));
                         deltas.set(active, delta);
+                        deltas.set(1-active, oppDelta);
                         roundState = new TerminalState(deltas, ((TerminalState)roundState).previousState);
-                        gameState = new GameState(gameState.bankroll + delta, gameState.gameClock, gameState.roundNum);
+                        gameState = new GameState(gameState.bankroll + delta, gameState.oppBankroll + oppDelta, gameState.gameClock, gameState.roundNum);
                         this.pokerbot.handleRoundOver(gameState, (TerminalState)roundState, active);
-                        gameState = new GameState(gameState.bankroll, gameState.gameClock, gameState.roundNum + 1);
+                        gameState = new GameState(gameState.bankroll, gameState.oppBankroll, gameState.gameClock, gameState.roundNum + 1);
                         roundFlag = true;
                         break;
                     }
@@ -230,7 +233,12 @@ public class Runner {
                     }
                     case 'A': {
                         String[] cards = leftover.split(",");
-                        actions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, Arrays.asList(cards)));
+                        if ("".equals(leftover)) {
+                            actions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, Arrays.asList("", "")));
+                        } else {
+                            actions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, Arrays.asList(cards)));
+                        }
+                        break;
                     }
                     default: {
                         break;
