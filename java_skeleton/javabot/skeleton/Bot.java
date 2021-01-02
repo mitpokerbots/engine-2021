@@ -31,5 +31,5 @@ public interface Bot {
      * @param active Your player's index.
      * @return Your list of actions.
      */
-    public List<Action> getAction(GameState gameState, RoundState roundState, int active);
+    public List<Action> getActions(GameState gameState, RoundState roundState, int active);
 }

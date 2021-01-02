@@ -71,7 +71,7 @@ public class Player implements Bot {
      * @param active Your player's index.
      * @return Your action.
      */
-    public List<Action> getAction(GameState gameState, RoundState roundState, int active) {
+    public List<Action> getActions(GameState gameState, RoundState roundState, int active) {
         List<Set<ActionType>> legalActions = roundState.legalActions();  // the actions you are allowed to take
         //int street = roundState.street;  // 0, 3, 4, or 5 representing pre-flop, flop, turn, or river respectively
         List<String> myCards = roundState.hands.get(active);  // your cards
