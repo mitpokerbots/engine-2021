@@ -60,7 +60,7 @@ public class BoardState extends State {
      */
     public Set<ActionType> legalActions(int button, List<Integer> stacks) {
         int active = button % 2;
-        if (this.hands == null) {
+        if ((this.hands == null) || (this.hands.get(active).size() == 0)) {
             return new HashSet<ActionType>(Arrays.asList(ActionType.ASSIGN_ACTION_TYPE));
         } else if (this.settled) {
             return new HashSet<ActionType>(Arrays.asList(ActionType.CHECK_ACTION_TYPE));
