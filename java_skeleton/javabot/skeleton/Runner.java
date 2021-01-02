@@ -40,6 +40,7 @@ public class Runner {
             switch (actions.get(i).actionType) {
                 case ASSIGN_ACTION_TYPE: {
                     codes[i] = i + "A" + String.join(",", actions.get(i).cards);
+                    break;
                 }
                 case FOLD_ACTION_TYPE: {
                     codes[i] = i + "F";
