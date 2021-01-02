@@ -345,7 +345,9 @@ class Player():
                     raise socket.timeout
                 clauses = clauses.split(';')
                 assert (len(clauses) == NUM_BOARDS)
-                actions = [self.query_board(round_state.board_states[i], clauses[i], game_log) if isinstance(round_state, RoundState) else self.query_board(round_state.previous_state.board_states[i], clauses[i], game_log) for i in range(NUM_BOARDS)]
+                actions = [self.query_board(round_state.board_states[i], clauses[i], game_log, round_state.button, round_state.stacks)
+                    if isinstance(round_state, RoundState) else self.query_board(round_state.previous_state.board_states[i], clauses[i],
+                    game_log, round_state.previous_state.button, round_state.previous_state.stacks) for i in range(NUM_BOARDS)]
                 if all(isinstance(a, AssignAction) for a in actions):
                     if set().union(*[set(a.cards) for a in actions]) == set(round_state.hands[index]):
                         return actions
@@ -381,11 +383,11 @@ class Player():
         default_actions = round_state.legal_actions() if isinstance(round_state, RoundState) else [{CheckAction} for i in range(NUM_BOARDS)]
         return [CheckAction() if CheckAction in default else FoldAction() for default in default_actions]
 
-    def query_board(self, board_state, clause, game_log):
+    def query_board(self, board_state, clause, game_log, button, stacks):
         '''
         Parses one action from the pokerbot for a specific board.
         '''
-        legal_actions = board_state.legal_actions() if isinstance(board_state, BoardState) else {CheckAction}
+        legal_actions = board_state.legal_actions(button, stacks) if isinstance(board_state, BoardState) else {CheckAction}
         action = DECODE[clause[1]]
         if action in legal_actions:
             if clause[1] == 'R':
