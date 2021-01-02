@@ -233,7 +233,11 @@ public class Runner {
                     }
                     case 'A': {
                         String[] cards = leftover.split(",");
-                        actions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, Arrays.asList(cards)));
+                        if ("".equals(leftover)) {
+                            actions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, Arrays.asList("", "")));
+                        } else {
+                            actions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, Arrays.asList(cards)));
+                        }
                         break;
                     }
                     default: {

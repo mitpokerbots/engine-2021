@@ -135,7 +135,7 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
             new_pips[active] += contribution
             return BoardState(self.pot, new_pips, self.hands, self.deck, self, True)
         if isinstance(action, CheckAction):
-            if (street == 0 and self.button > 0) or self.button > 1:  # both players acted
+            if (street == 0 and button > 0) or button > 1:  # both players acted
                 return BoardState(self.pot, self.pips, self.hands, self.deck, self, True, self.reveal)
             # let opponent act
             return BoardState(self.pot, self.pips, self.hands, self.deck, self, self.settled, self.reveal)
@@ -452,7 +452,7 @@ class Game():
         code = ';'.join(codes)
         if 'A' in code:
             self.player_messages[active].append(code)
-            self.player_messages[1-active].append(';'.join([str(i) + 'A' for i in range(NUM_BOARDS)]))
+            self.player_messages[1-active].append(';'.join([str(i+1) + 'A' for i in range(NUM_BOARDS)]))
         else:
             self.player_messages[0].append(code)
             self.player_messages[1].append(code)
