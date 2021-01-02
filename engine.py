@@ -54,6 +54,14 @@ POTVAL = lambda value: ', ({})'.format(value)
 # Action history is sent once, including the player's actions
 
 
+class SmallDeck(eval7.Deck):
+    '''
+    Provides method for creating new deck from existing eval7.Deck object.
+    '''
+    def __init__(self, existing_deck):
+        self.cards = [eval7.Card(str(card)) for card in existing_deck.cards]
+
+
 class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'previous_state', 'settled'], defaults=[False])):
     '''
     Encodes the game tree for one board within a round.
@@ -505,8 +513,11 @@ class Game():
         deck = eval7.Deck()
         deck.shuffle()
         hands = [deck.deal(NUM_BOARDS*2), deck.deal(NUM_BOARDS*2)]
+        new_decks  = [SmallDeck(deck) for i in range(NUM_BOARDS)]
+        for new_deck in new_decks:
+            new_deck.shuffle()
         stacks = [STARTING_STACK - NUM_BOARDS*SMALL_BLIND, STARTING_STACK - NUM_BOARDS*BIG_BLIND]
-        board_states = [BoardState((i+1)*BIG_BLIND, [SMALL_BLIND, BIG_BLIND], None, copy.deepcopy(deck).shuffle(), None) for i in range(NUM_BOARDS)]
+        board_states = [BoardState((i+1)*BIG_BLIND, [SMALL_BLIND, BIG_BLIND], None, new_decks[i], None) for i in range(NUM_BOARDS)]
         # board_states assign
         round_state = RoundState(-2, 0, stacks, hands, board_states, None)
         while not isinstance(round_state, TerminalState):
