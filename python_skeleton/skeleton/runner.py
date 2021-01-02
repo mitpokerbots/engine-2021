@@ -3,7 +3,7 @@ The infrastructure for interacting with the engine.
 '''
 import argparse
 import socket
-from .actions import FoldAction, CallAction, CheckAction, RaiseAction
+from .actions import FoldAction, CallAction, CheckAction, RaiseAction, AssignAction
 from .states import GameState, TerminalState, RoundState
 from .states import STARTING_STACK, BIG_BLIND, SMALL_BLIND
 from .bot import Bot
@@ -38,6 +38,8 @@ class Runner():
             code = 'C'
         elif isinstance(action, CheckAction):
             code = 'K'
+        elif isinstance(action, AssignAction):
+            code = 'A'
         else:  # isinstance(action, RaiseAction)
             code = 'R' + str(action.amount)
         self.socketfile.write(code + '\n')
