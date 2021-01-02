@@ -62,7 +62,7 @@ class SmallDeck(eval7.Deck):
         self.cards = [eval7.Card(str(card)) for card in existing_deck.cards]
 
 
-class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'previous_state', 'settled'], defaults=[False])):
+class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'previous_state', 'settled', 'reveal'], defaults=[False, True])):
     '''
     Encodes the game tree for one board within a round.
     '''
@@ -124,7 +124,7 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
         if isinstance(action, FoldAction):
             new_pot = self.pot + sum(self.pips)
             winnings = [0, new_pot] if active == 0 else [new_pot, 0]
-            return TerminalState(winnings, BoardState(new_pot, [0, 0], self.hands, self.deck, self, True))
+            return TerminalState(winnings, BoardState(new_pot, [0, 0], self.hands, self.deck, self, True, False))
         if isinstance(action, CallAction):
             if button == 0: # sb calls bb
                 return BoardState(self.pot, [BIG_BLIND] * 2, self.hands, self.deck, self)
@@ -135,9 +135,9 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
             return BoardState(self.pot, new_pips, self.hands, self.deck, self, True)
         if isinstance(action, CheckAction):
             if (street == 0 and self.button > 0) or self.button > 1:  # both players acted
-                return BoardState(self.pot, self.pips, self.hands, self.deck, self, True)
+                return BoardState(self.pot, self.pips, self.hands, self.deck, self, True, self.reveal)
             # let opponent act
-            return BoardState(self.pot, self.pips, self.hands, self.deck, self, self.settled)
+            return BoardState(self.pot, self.pips, self.hands, self.deck, self, self.settled, self.reveal)
         # isinstance(action, RaiseAction)
         new_pips = list(self.pips)
         contribution = action.amount - new_pips[active]
@@ -485,7 +485,7 @@ class Game():
         log_message_one = [''] * NUM_BOARDS
         for i in range(NUM_BOARDS):
             previous_board = previous_round.board_states[i].previous_state
-            if FoldAction not in previous_board.legal_actions():
+            if previous_board.reveal:
                 self.log.append('{} shows {} on board {}'.format(players[0].name, PCARDS(previous_board.hands[0]), i+1))
                 self.log.append('{} shows {} on board {}'.format(players[1].name, PCARDS(previous_board.hands[1]), i+1))
                 log_message_zero[i] = str(i+1) + 'O' + CCARDS(previous_board.hands[1])
