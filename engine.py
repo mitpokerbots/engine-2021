@@ -89,6 +89,7 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
             return {AssignAction}
         elif self.settled:
             return {CheckAction}
+        # board being played on
         continue_cost = self.pips[1-active] - self.pips[active]
         if continue_cost == 0:
             # we can only raise the stakes if both players can afford it
@@ -343,8 +344,10 @@ class Player():
                     self.game_clock -= end_time - start_time
                 if self.game_clock <= 0.:
                     raise socket.timeout
+                assert_flag = (';' in clauses)
                 clauses = clauses.split(';')
-                assert (len(clauses) == NUM_BOARDS)
+                if assert_flag:
+                    assert (len(clauses) == NUM_BOARDS)
                 actions = [self.query_board(round_state.board_states[i], clauses[i], game_log, round_state.button, round_state.stacks)
                     if isinstance(round_state, RoundState) else self.query_board(round_state.previous_state.board_states[i], clauses[i],
                     game_log, round_state.previous_state.button, round_state.previous_state.stacks) for i in range(NUM_BOARDS)]
@@ -358,11 +361,11 @@ class Player():
                     for action in actions:
                         if isinstance(action, RaiseAction):
                             total_raise += action.amount
-                    min_raise, max_raise = round_state.raise_bounds()
+                    min_raise, max_raise = round_state.raise_bounds() if isinstance(round_state, RoundState) else (0, 0)
                     if min_raise <= total_raise <= max_raise:
                         return actions
                     #else: (attempted negative net raise or net raise larger than bankroll)
-                    game_log.append(self.name + " attempted illegal RaiseAction's")
+                    game_log.append(self.name + " attempted net illegal RaiseAction's")
             except socket.timeout:
                 error_message = self.name + ' ran out of time'
                 game_log.append(error_message)

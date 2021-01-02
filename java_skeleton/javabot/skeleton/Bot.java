@@ -1,5 +1,7 @@
 package javabot.skeleton;
 
+import java.util.List;
+
 /**
  * The interface for a pokerbot.
  */
@@ -29,7 +31,7 @@ public interface Bot {
      * @param gameState The GameState object.
      * @param roundState The RoundState object.
      * @param active Your player's index.
-     * @return Your action.
+     * @return Your list of actions.
      */
-    public Action getAction(GameState gameState, RoundState roundState, int active);
+    public List<Action> getActions(GameState gameState, RoundState roundState, int active);
 }
