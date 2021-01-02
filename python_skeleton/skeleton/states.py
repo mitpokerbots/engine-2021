@@ -2,25 +2,98 @@
 Encapsulates game and round state information for the player.
 '''
 from collections import namedtuple
-from .actions import FoldAction, CallAction, CheckAction, RaiseAction
+from .actions import FoldAction, CallAction, CheckAction, RaiseAction, AssignAction
 
 GameState = namedtuple('GameState', ['bankroll', 'game_clock', 'round_num'])
 TerminalState = namedtuple('TerminalState', ['deltas', 'previous_state'])
 
 NUM_ROUNDS = 1000
-STARTING_STACK = 400
+STARTING_STACK = 200
 BIG_BLIND = 2
 SMALL_BLIND = 1
 NUM_BOARDS = 3
 
-class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'previous_state'])):
+class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'previous_state', 'settled'], defaults=[False])):
+    '''
+    Encodes the game tree for one board within a round.
+    '''
+    def update_pot(self):
+        '''
+        Add value of pips to the pot.
+        Method called at end of each betting round.
+        '''
+        self.pot += sum(self.pips)
+
+    def showdown(self):
+        '''
+        Compares the players' hands and computes payoffs.
+        '''
+        return TerminalState([0, 0], self)
+
+    def legal_actions(self, button, stacks):
+        '''
+        Returns a set which corresponds to the active player's legal moves on this board.
+        '''
+        active = button % 2
+        if self.hands is None:
+            return {AssignAction}
+        elif self.settled:
+            return {CheckAction}
+        continue_cost = self.pips[1-active] - self.pips[active]
+        if continue_cost == 0:
+            # we can only raise the stakes if both players can afford it
+            bets_forbidden = (stacks[0] == 0 or stacks[1] == 0)
+            return {CheckAction} if bets_forbidden else {CheckAction, RaiseAction}
+        # continue_cost > 0
+        # similarly, re-raising is only allowed if both players can afford it
+        raises_forbidden = (continue_cost == stacks[active] or stacks[1-active] == 0)
+        return {FoldAction, CallAction} if raises_forbidden else {FoldAction, CallAction, RaiseAction}
+
+    def raise_bounds(self, button, stacks):
+        '''
+        Returns a tuple of the minimum and maximum legal raises.
+        '''
+        active = button % 2
+        continue_cost = self.pips[1-active] - self.pips[active]
+        max_contribution = min(stacks[active], stacks[1-active] + continue_cost)
+        min_contribution = min(max_contribution, continue_cost + max(continue_cost, BIG_BLIND))
+        return (self.pips[active] + min_contribution, self.pips[active] + max_contribution)
+
+    def proceed(self, action, button):
+        '''
+        Advances the game tree by one action performed by the active player on the current board.
+        '''
+        active = button % 2
+        if isinstance(action, AssignAction):
+            return BoardState(self.pot, self.pips, action.cards, self.deck, self)
+        if isinstance(action, FoldAction):
+            self.update_pot()
+            winnings = [0, self.pot] if active == 0 else [self.pot, 0]
+            return TerminalState(winnings, self)
+        if isinstance(action, CallAction):
+            if button == 0: # sb calls bb
+                return BoardState(self.pot, [BIG_BLIND] * 2, self.hands, self.deck, self)
+            # both players acted
+            new_pips = list(self.pips)
+            contribution = new_pips[1-active] - new_pips[active]
+            new_pips[active] += contribution
+            return BoardState(self.pot, new_pips, self.hands, self.deck, self, True)
+        if isinstance(action, CheckAction):
+            if (self.street == 0 and self.button > 0) or self.button > 1:  # both players acted
+                return BoardState(self.pot, self.pips, self.hands, self.deck, self, True)
+            # let opponent act
+            return BoardState(self.pot, self.pips, self.hands, self.deck, self, self.settled)
+        # isinstance(action, RaiseAction)
+        new_pips = list(self.pips)
+        contribution = action.amount - new_pips[active]
+        new_pips[active] += contribution
+        return BoardState(self.pot, new_pips, self.hands, self.deck, self)
 
 
-class RoundState(namedtuple('_RoundState', ['button', 'street', 'pips', 'stacks', 'hands', 'deck', 'previous_state'])):
+class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands', 'board_states', 'previous_state'])):
     '''
     Encodes the game tree for one round of poker.
     '''
-
     def showdown(self):
         '''
         Compares the players' hands and computes payoffs.
@@ -31,64 +104,41 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'pips', 'stacks'
         '''
         Returns a set which corresponds to the active player's legal moves.
         '''
-        active = self.button % 2
-        continue_cost = self.pips[1-active] - self.pips[active]
-        if continue_cost == 0:
-            # we can only raise the stakes if both players can afford it
-            bets_forbidden = (self.stacks[0] == 0 or self.stacks[1] == 0)
-            return {CheckAction} if bets_forbidden else {CheckAction, RaiseAction}
-        # continue_cost > 0
-        # similarly, re-raising is only allowed if both players can afford it
-        raises_forbidden = (continue_cost == self.stacks[active] or self.stacks[1-active] == 0)
-        return {FoldAction, CallAction} if raises_forbidden else {FoldAction, CallAction, RaiseAction}
+        return [board_state.legal_actions(self.button, self.stacks) if isinstance(board_state, BoardState) else {CheckAction} for board_state in self.board_states]
 
     def raise_bounds(self):
         '''
-        Returns a tuple of the minimum and maximum legal raises.
+        Returns a tuple of the minimum and maximum legal raises summed across boards.
         '''
         active = self.button % 2
-        continue_cost = self.pips[1-active] - self.pips[active]
-        max_contribution = min(self.stacks[active], self.stacks[1-active] + continue_cost)
-        min_contribution = min(max_contribution, continue_cost + max(continue_cost, BIG_BLIND))
-        return (self.pips[active] + min_contribution, self.pips[active] + max_contribution)
+        return (0, self.stacks[active])
 
     def proceed_street(self):
         '''
         Resets the players' pips and advances the game tree to the next round of betting.
         '''
+        for board_state in self.board_states:
+            if isinstance(board_state, BoardState):
+                board_state.update_pot()
         if self.street == 5:
             return self.showdown()
         new_street = 3 if self.street == 0 else self.street + 1
-        return RoundState(1, new_street, [0, 0], self.stacks, self.hands, self.deck, self)
+        new_board_states = [BoardState(old_board_state.pot, [0, 0], old_board_state.hands, old_board_state.deck, old_board_state) if isinstance(old_board_state, BoardState) else old_board_state for old_board_state in self.board_states]
+        return RoundState(1, new_street, self.stacks, self.hands, new_board_states, self)
 
-    def proceed(self, action):
+    def proceed(self, actions):
         '''
-        Advances the game tree by one action performed by the active player.
+        Advances the game tree by one tuple of actions performed by the active player.
         '''
-        active = self.button % 2
-        if isinstance(action, FoldAction):
-            delta = self.stacks[0] - STARTING_STACK if active == 0 else STARTING_STACK - self.stacks[1]
-            return TerminalState([delta, -delta], self)
-        if isinstance(action, CallAction):
-            if self.button == 0:  # sb calls bb
-                return RoundState(1, 0, [BIG_BLIND] * 2, [STARTING_STACK - BIG_BLIND] * 2, self.hands, self.deck, self)
-            # both players acted
-            new_pips = list(self.pips)
-            new_stacks = list(self.stacks)
-            contribution = new_pips[1-active] - new_pips[active]
-            new_stacks[active] -= contribution
-            new_pips[active] += contribution
-            state = RoundState(self.button + 1, self.street, new_pips, new_stacks, self.hands, self.deck, self)
-            return state.proceed_street()
-        if isinstance(action, CheckAction):
-            if (self.street == 0 and self.button > 0) or self.button > 1:  # both players acted
-                return self.proceed_street()
-            # let opponent act
-            return RoundState(self.button + 1, self.street, self.pips, self.stacks, self.hands, self.deck, self)
-        # isinstance(action, RaiseAction)
-        new_pips = list(self.pips)
+        new_board_states = [self.board_states[i].proceed(actions[i], self.button) if isinstance(self.board_states[i], BoardState) else self.board_states[i] for i in range(NUM_BOARDS)]
+        active = button % 2
         new_stacks = list(self.stacks)
-        contribution = action.amount - new_pips[active]
+        contribution = 0
+        for i in range(NUM_BOARDS):
+            if isinstance(new_board_states[i], BoardState) and isinstance(self.board_states[i], BoardState):
+                contribution += new_board_states[i].pips[active] - self.board_states[i].pips[active]
         new_stacks[active] -= contribution
-        new_pips[active] += contribution
-        return RoundState(self.button + 1, self.street, new_pips, new_stacks, self.hands, self.deck, self)
+        settled = [(isinstance(board_state, TerminalState) or board_state.settled) for board_state in new_board_states]
+        state = RoundState(self.button + 1, self.street, new_stacks, self.hands, new_board_states, self)
+        return state.proceed_street() if all(settled) else state
+
