@@ -66,13 +66,6 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
     '''
     Encodes the game tree for one board within a round.
     '''
-    def update_pot(self):
-        '''
-        Add value of pips to the pot.
-        Method called at end of each betting round.
-        '''
-        self.pot += sum(self.pips)
-
     def showdown(self):
         '''
         Compares the players' hands and computes payoffs.
@@ -129,9 +122,9 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
                 new_hands[1-active] = opp_hands
             return BoardState(self.pot, self.pips, new_hands, self.deck, self)
         if isinstance(action, FoldAction):
-            self.update_pot()
-            winnings = [0, self.pot] if active == 0 else [self.pot, 0]
-            return TerminalState(winnings, self)
+            new_pot = self.pot + sum(self.pips)
+            winnings = [0, new_pot] if active == 0 else [new_pot, 0]
+            return TerminalState(winnings, BoardState(new_pot, [0, 0], self.hands, self.deck, self, True))
         if isinstance(action, CallAction):
             if button == 0: # sb calls bb
                 return BoardState(self.pot, [BIG_BLIND] * 2, self.hands, self.deck, self)
@@ -186,13 +179,14 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         '''
         Resets the players' pips and advances the game tree to the next round of betting.
         '''
-        for board_state in self.board_states:
-            if isinstance(board_state, BoardState):
-                board_state.update_pot()
+        new_pots = [0]*NUM_BOARDS
+        for i in range(NUM_BOARDS):
+            if isinstance(self.board_states[i], BoardState):
+                new_pots[i] = self.board_states[i].pot + sum(self.board_states[i].pips)
         if self.street == 5:
             return self.showdown()
         new_street = 3 if self.street == 0 else self.street + 1
-        new_board_states = [BoardState(old_board_state.pot, [0, 0], old_board_state.hands, old_board_state.deck, old_board_state) if isinstance(old_board_state, BoardState) else old_board_state for old_board_state in self.board_states]
+        new_board_states = [BoardState(new_pots[i], [0, 0], self.board_states[i].hands, self.board_states[i].deck, self.board_states[i]) if isinstance(self.board_states[i], BoardState) else self.board_states[i] for i in range(NUM_BOARDS)]
         return RoundState(1, new_street, self.stacks, self.hands, new_board_states, self)
 
     def proceed(self, actions):
