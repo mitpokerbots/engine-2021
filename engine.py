@@ -344,8 +344,10 @@ class Player():
                     self.game_clock -= end_time - start_time
                 if self.game_clock <= 0.:
                     raise socket.timeout
+                assert_flag = (';' in clauses)
                 clauses = clauses.split(';')
-                assert (len(clauses) == NUM_BOARDS)
+                if assert_flag:
+                    assert (len(clauses) == NUM_BOARDS)
                 actions = [self.query_board(round_state.board_states[i], clauses[i], game_log, round_state.button, round_state.stacks)
                     if isinstance(round_state, RoundState) else self.query_board(round_state.previous_state.board_states[i], clauses[i],
                     game_log, round_state.previous_state.button, round_state.previous_state.stacks) for i in range(NUM_BOARDS)]
