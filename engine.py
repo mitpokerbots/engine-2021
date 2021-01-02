@@ -108,7 +108,7 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
         min_contribution = min(max_contribution, continue_cost + max(continue_cost, BIG_BLIND))
         return (self.pips[active] + min_contribution, self.pips[active] + max_contribution)
 
-    def proceed(self, action, button):
+    def proceed(self, action, button, street):
         '''
         Advances the game tree by one action performed by the active player on the current board.
         '''
@@ -133,7 +133,7 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
             new_pips[active] += contribution
             return BoardState(self.pot, new_pips, self.hands, self.deck, self, True)
         if isinstance(action, CheckAction):
-            if (self.street == 0 and self.button > 0) or self.button > 1:  # both players acted
+            if (street == 0 and self.button > 0) or self.button > 1:  # both players acted
                 return BoardState(self.pot, self.pips, self.hands, self.deck, self, True)
             # let opponent act
             return BoardState(self.pot, self.pips, self.hands, self.deck, self, self.settled)
@@ -191,7 +191,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         '''
         Advances the game tree by one tuple of actions performed by the active player.
         '''
-        new_board_states = [self.board_states[i].proceed(actions[i], self.button) if isinstance(self.board_states[i], BoardState) else self.board_states[i] for i in range(NUM_BOARDS)]
+        new_board_states = [self.board_states[i].proceed(actions[i], self.button, self.street) if isinstance(self.board_states[i], BoardState) else self.board_states[i] for i in range(NUM_BOARDS)]
         active = button % 2
         new_stacks = list(self.stacks)
         contribution = 0
