@@ -63,6 +63,7 @@ public class BoardState extends State {
      */
     public Set<ActionType> legalActions(int button, List<Integer> stacks) {
         int active = button % 2;
+        if (active < 0) active += 2;
         if ((this.hands == null) || (this.hands.get(active).size() == 0)) {
             return new HashSet<ActionType>(Arrays.asList(ActionType.ASSIGN_ACTION_TYPE));
         } else if (this.settled) {
@@ -94,6 +95,7 @@ public class BoardState extends State {
      */
     public List<Integer> raiseBounds(int button, List<Integer> stacks) {
         int active = button % 2;
+        if (active < 0) active += 2;
         int continueCost = this.pips.get(1-active) - this.pips.get(active);
         int maxContribution = Math.min(stacks.get(active), stacks.get(1-active) + continueCost);
         int minContribution = Math.min(maxContribution, continueCost + Math.max(continueCost, State.BIG_BLIND));
@@ -105,6 +107,7 @@ public class BoardState extends State {
      */
     public State proceed(Action action, int button, int street) {
         int active = button % 2;
+        if (active < 0) active += 2;
         switch (action.actionType) {
             case ASSIGN_ACTION_TYPE: {
                 List<List<String>> newHands = Arrays.asList(new ArrayList<String>(), new ArrayList<String>());

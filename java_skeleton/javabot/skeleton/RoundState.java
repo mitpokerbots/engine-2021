@@ -70,6 +70,7 @@ public class RoundState extends State {
      */
     public List<Integer> raiseBounds() {
         int active = this.button % 2;
+        if (active < 0) active += 2;
         return Arrays.asList(0, this.stacks.get(active));
     }
 
@@ -118,6 +119,7 @@ public class RoundState extends State {
             }
         }
         int active = this.button % 2;
+        if (active < 0) active += 2;
         List<Integer> newStacks = new ArrayList<Integer>(this.stacks);
         int contribution = 0;
         for (int i = 0; i < State.NUM_BOARDS; i++) {
