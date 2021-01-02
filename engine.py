@@ -114,7 +114,12 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
         '''
         active = button % 2
         if isinstance(action, AssignAction):
-            return BoardState(self.pot, self.pips, action.cards, self.deck, self)
+            new_hands = [[]] * 2
+            new_hands[active] = action.cards
+            if self.hands is not None:
+                opp_hands = self.hands[1-active]
+                new_hands[1-active] = opp_hands
+            return BoardState(self.pot, self.pips, new_hands, self.deck, self)
         if isinstance(action, FoldAction):
             self.update_pot()
             winnings = [0, self.pot] if active == 0 else [self.pot, 0]
