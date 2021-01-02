@@ -134,11 +134,6 @@ public class Runner {
                     case 'Q': {
                         return;
                     }
-                    case 'S': {
-                        RoundState maker = (RoundState)roundState;
-                        roundState = new RoundState(maker.button + 1, maker.street, maker.stacks, maker.hands,
-                                                    maker.boardStates, maker);
-                    }
                     case '1': {
                         roundState = this.parseMultiCode(clause, roundState, active);
                         break;
