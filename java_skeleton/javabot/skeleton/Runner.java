@@ -68,9 +68,15 @@ public class Runner {
      */
     public void run() throws IOException {
         GameState gameState = new GameState(0, (float)0., 1);
-        State roundState = new RoundState(0, 0, Arrays.asList(0, 0), Arrays.asList(0, 0),
+        List<State> boardStates = new ArrayList<State>();
+        for (int i = 0; i < State.NUM_BOARDS; i++) {
+            boardStates.add(new BoardState((i+1)*State.BIG_BLIND, Arrays.asList(0, 0),
+                                            Arrays.asList(Arrays.asList(""), Arrays.asList("")),
+                                            Arrays.asList(""), null));
+        }
+        State roundState = new RoundState(-2, 0, Arrays.asList(0, 0),
                                           Arrays.asList(Arrays.asList(""), Arrays.asList("")),
-                                          Arrays.asList(""), null);
+                                          boardStates, null);
         int active = 0;
         boolean roundFlag = true;
         while (true) {
@@ -98,54 +104,19 @@ public class Runner {
                         hands.set(1 - active, Arrays.asList("", ""));
                         List<String> deck = new ArrayList<String>(Arrays.asList("", "", "", "", ""));
                         List<Integer> pips = Arrays.asList(State.SMALL_BLIND, State.BIG_BLIND);
+                        boardStates = new ArrayList<State>();
+                        for (int i = 0; i < State.NUM_BOARDS; i++) {
+                            boardStates.add(new BoardState((i+1)*State.BIG_BLIND, pips,
+                                            Arrays.asList(new ArrayList<String>(), new ArrayList<String>()),
+                                            deck, null));
+                        }
                         List<Integer> stacks = Arrays.asList(State.STARTING_STACK - State.SMALL_BLIND,
                                                              State.STARTING_STACK - State.BIG_BLIND);
-                        roundState = new RoundState(0, 0, pips, stacks, hands, deck, null);
+                        roundState = new RoundState(-2, 0, stacks, hands, boardStates, null);
                         if (roundFlag) {
                             this.pokerbot.handleNewRound(gameState, (RoundState)roundState, active);
                             roundFlag = false;
                         }
-                        break;
-                    }
-                    case 'F': {
-                        roundState = ((RoundState)roundState).proceed(new Action(ActionType.FOLD_ACTION_TYPE));
-                        break;
-                    }
-                    case 'C': {
-                        roundState = ((RoundState)roundState).proceed(new Action(ActionType.CALL_ACTION_TYPE));
-                        break;
-                    }
-                    case 'K': {
-                        roundState = ((RoundState)roundState).proceed(new Action(ActionType.CHECK_ACTION_TYPE));
-                        break;
-                    }
-                    case 'R': {
-                        roundState = ((RoundState)roundState).proceed(new Action(ActionType.RAISE_ACTION_TYPE,
-                                                                                 Integer.parseInt(leftover)));
-                        break;
-                    }
-                    case 'B': {
-                        String[] cards = leftover.split(",");
-                        List<String> revisedDeck = new ArrayList<String>(Arrays.asList("", "", "", "", ""));
-                        for (int i = 0; i < cards.length; i++) {
-                            revisedDeck.set(i, cards[i]);
-                        }
-                        RoundState maker = (RoundState)roundState;
-                        roundState = new RoundState(maker.button, maker.street, maker.pips, maker.stacks,
-                                                    maker.hands, revisedDeck, maker.previousState);
-                        break;
-                    }
-                    case 'O': {
-                        // backtrack
-                        String[] cards = leftover.split(",");
-                        roundState = ((TerminalState)roundState).previousState;
-                        RoundState maker = (RoundState)roundState;
-                        List<List<String>> revisedHands = new ArrayList<List<String>>(maker.hands);
-                        revisedHands.set(1 - active, Arrays.asList(cards[0], cards[1]));
-                        // rebuild history
-                        roundState = new RoundState(maker.button, maker.street, maker.pips, maker.stacks,
-                                                    revisedHands, maker.deck, maker.previousState);
-                        roundState = new TerminalState(Arrays.asList(0, 0), roundState);
                         break;
                     }
                     case 'D': {
@@ -162,6 +133,10 @@ public class Runner {
                     case 'Q': {
                         return;
                     }
+                    case '1': {
+                        roundState = this.parseMultiCode(clause, roundState, active);
+                        break;
+                    }
                     default: {
                         break;
                     }
@@ -176,6 +151,90 @@ public class Runner {
             } else {
                 List<Action> actions = this.pokerbot.getActions(gameState, (RoundState)roundState, active);
                 this.send(actions);
+            }
+        }
+    }
+
+    /**
+     * Parses clauses which contain codes across multiple boards.
+      */
+    public State parseMultiCode(String clause, State roundState, int active) {
+        String[] subclauses = clause.split(";");
+        if (clause.contains("B")) {
+            List<State> newBoardStates = new ArrayList<State>();
+            for (int i = 0; i < State.NUM_BOARDS; i++) {
+                String leftover = subclauses[i].substring(2, subclauses[i].length());
+                String[] cards = leftover.split(",");
+                List<String> revisedDeck = new ArrayList<String>(Arrays.asList("", "", "", "", ""));
+                for (int j = 0; j < cards.length; j++) {
+                    revisedDeck.set(j, cards[j]);
+                }
+                if (roundState.boardStates.get(i) instanceof BoardState) {
+                    BoardState maker = (BoardState)roundState.boardStates.get(i);
+                    newBoardStates.add(new BoardState(maker.pot, maker.pips, maker.hands,
+                                                        revisedDeck, maker.previousState));
+                } else {
+                    TerminalState terminal = (TerminalState)roundState.boardStates.get(i);
+                    BoardState maker = (BoardState)terminal.previousState;
+                    newBoardStates.add(new TerminalState(terminal.deltas,
+                                                        new BoardState(maker.pot, maker.pips, maker.hands,
+                                                                        revisedDeck, maker.previousState,
+                                                                        maker.settled)));
+                }
+            }
+            RoundState maker = (RoundState)roundState;
+            return new RoundState(maker.button, maker.street, maker.stacks, maker.hands,
+                                    newBoardStates, maker.previousState);
+        } else if (clause.contains("O")) {
+            List<State> newBoardStates = new ArrayList<State>();
+            roundState = (RoundState)((TerminalState)roundState).previousState;
+            for (int i = 0; i < State.NUM_BOARDS; i++) {
+                String leftover = subclauses[i].substring(2, subclauses[i].length());
+                if ("".equals(leftover)) {
+                    newBoardStates.add(roundState.boardStates.get(i));
+                } else {
+                    // backtrack
+                    String[] cards = leftover.split(",");
+                    TerminalState terminal = (TerminalState)roundState.boardStates.get(i);
+                    BoardState maker = (BoardState)terminal.previousState;
+                    List<List<String>> revisedHands = new ArrayList<List<String>>(maker.hands);
+                    revisedHands.set(1 - active, Arrays.asList(cards[0], cards[1]));
+                    newBoardStates.add(new TerminalState(terminal.deltas, new BoardState(maker.pot, maker.pips, revisedHands, maker.deck, maker.previousState, maker.settled)));
+                }
+            }
+            roundState = new RoundState(roundState.button, roundState.street, roundState.stacks, roundState.hands, newBoardStates, roundState.previousState);
+            return new TerminalState(Arrays.asList(0, 0), roundState);
+        }
+        else {
+            roundState = (RoundState)roundState;
+            List<Action> actions = new ArrayList<Action>();
+            for(String subclause : subclauses) {
+                String leftover = subclause.substring(2, subclause.length());
+                switch (subclause.charAt(1)) {
+                    case 'F': {
+                        actions.add(new Action(ActionType.FOLD_ACTION_TYPE));
+                        break;
+                    }
+                    case 'C': {
+                        actions.add(new Action(ActionType.CALL_ACTION_TYPE));
+                        break;
+                    }
+                    case 'K': {
+                        actions.add(new Action(ActionType.CHECK_ACTION_TYPE));
+                        break;
+                    }
+                    case 'R': {
+                        actions.add(new Action(ActionType.RAISE_ACTION_TYPE, Integer.parseInt(leftover)));
+                        break;
+                    }
+                    case 'A': {
+                        String[] cards = leftover.split(",");
+                        actions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, Arrays.asList(cards[0], cards[1])))
+                    }
+                    default: {
+                        break;
+                    }
+                }
             }
         }
     }
