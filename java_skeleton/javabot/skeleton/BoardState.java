@@ -104,7 +104,7 @@ public class BoardState extends State {
                 newHands.set(active, action.cards);
                 if (this.hands != null) {
                     List<String> oppHands = this.hands.get(1-active);
-                    newHands.set(1-active, oppHands)
+                    newHands.set(1-active, oppHands);
                 }
                 return new BoardState(this.pot, this.pips, newHands, this.deck, this)
             }
