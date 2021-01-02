@@ -194,7 +194,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         Advances the game tree by one tuple of actions performed by the active player.
         '''
         new_board_states = [self.board_states[i].proceed(actions[i], self.button, self.street) if isinstance(self.board_states[i], BoardState) else self.board_states[i] for i in range(NUM_BOARDS)]
-        active = button % 2
+        active = self.button % 2
         new_stacks = list(self.stacks)
         contribution = 0
         for i in range(NUM_BOARDS):
