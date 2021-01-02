@@ -229,7 +229,7 @@ public class Runner {
                     }
                     case 'A': {
                         String[] cards = leftover.split(",");
-                        actions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, Arrays.asList(cards[0], cards[1])));
+                        actions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, Arrays.asList(cards)));
                     }
                     default: {
                         break;
