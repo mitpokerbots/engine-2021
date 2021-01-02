@@ -95,7 +95,7 @@ public class RoundState extends State {
             }
         }
         if (this.street == 5) {
-            return (new RoundState(this.active, 5, this.stacks, this.hands, newBoardStates, this)).showdown();
+            return (new RoundState(this.button, 5, this.stacks, this.hands, newBoardStates, this)).showdown();
         }
         int newStreet;
         if (this.street == 0) {
