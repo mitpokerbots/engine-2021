@@ -1,8 +1,11 @@
 package javabot.skeleton;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
+import java.util.HashSet;
 import java.lang.Integer;
 import java.lang.String;
 
@@ -110,7 +113,7 @@ public class BoardState extends State {
                     List<String> oppHands = this.hands.get(1-active);
                     newHands.set(1-active, oppHands);
                 }
-                return new BoardState(this.pot, this.pips, newHands, this.deck, this)
+                return new BoardState(this.pot, this.pips, newHands, this.deck, this);
             }
             case FOLD_ACTION_TYPE: {
                 this.updatePot();

@@ -1,5 +1,7 @@
 package javabot.skeleton;
 
+import java.util.List;
+
 /**
  * The interface for a pokerbot.
  */

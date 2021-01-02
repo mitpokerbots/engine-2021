@@ -39,7 +39,7 @@ public class RoundState extends State {
      * Compares the players' hands and computes payoffs.
      */
     public State showdown() {
-        ArrayList<TerminalState> terminalBoardStates = new ArrayList<TerminalState>();
+        List<State> terminalBoardStates = new ArrayList<State>();
         for (State boardState : this.boardStates) {
             if (boardState instanceof BoardState) {
                 terminalBoardStates.add((TerminalState)(((BoardState)boardState).showdown()));
@@ -57,7 +57,7 @@ public class RoundState extends State {
         List<Set<ActionType>> output = new ArrayList<Set<ActionType>>();
         for (State boardState : this.boardStates) {
             if (boardState instanceof BoardState) {
-                output.add(boardState.legalActions(this.button, this.stacks));
+                output.add(((BoardState)boardState).legalActions(this.button, this.stacks));
             } else {
                 output.add(new HashSet<ActionType>(Arrays.asList(ActionType.CHECK_ACTION_TYPE)));
             }
@@ -130,7 +130,7 @@ public class RoundState extends State {
         for (State boardState : newBoardStates) {
             settled.add((boardState instanceof TerminalState) || (((BoardState)boardState).settled));
         }
-        State state = RoundState(this.button + 1, this.street, newStacks, this.hands, newBoardStates, this);
+        RoundState state = new RoundState(this.button + 1, this.street, newStacks, this.hands, newBoardStates, this);
         if (!settled.contains(false)) {
             return state.proceedStreet();
         } else {

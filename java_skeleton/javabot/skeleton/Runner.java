@@ -39,7 +39,7 @@ public class Runner {
         for (int i = 0; i < State.NUM_BOARDS; i++) {
             switch (actions.get(i).actionType) {
                 case ASSIGN_ACTION_TYPE: {
-                    codes[i] = i + "A" + String.join(",", action.cards);
+                    codes[i] = i + "A" + String.join(",", actions.get(i).cards);
                 }
                 case FOLD_ACTION_TYPE: {
                     codes[i] = i + "F";
@@ -54,7 +54,7 @@ public class Runner {
                     break;
                 }
                 default: {  // RAISE_ACTION_TYPE
-                    codes[i] = i + "R" + Integer.toString(action.amount);
+                    codes[i] = i + "R" + Integer.toString(actions.get(i).amount);
                     break;
                 }
             }
@@ -100,7 +100,7 @@ public class Runner {
                                 new ArrayList<String>()
                             )
                         );
-                        hands.set(active, Arrays.asList(cards[0], cards[1]));
+                        hands.set(active, Arrays.asList(cards));
                         hands.set(1 - active, Arrays.asList("", ""));
                         List<String> deck = new ArrayList<String>(Arrays.asList("", "", "", "", ""));
                         List<Integer> pips = Arrays.asList(State.SMALL_BLIND, State.BIG_BLIND);
@@ -169,12 +169,12 @@ public class Runner {
                 for (int j = 0; j < cards.length; j++) {
                     revisedDeck.set(j, cards[j]);
                 }
-                if (roundState.boardStates.get(i) instanceof BoardState) {
-                    BoardState maker = (BoardState)roundState.boardStates.get(i);
+                if (((RoundState)roundState).boardStates.get(i) instanceof BoardState) {
+                    BoardState maker = (BoardState)((RoundState)roundState).boardStates.get(i);
                     newBoardStates.add(new BoardState(maker.pot, maker.pips, maker.hands,
                                                         revisedDeck, maker.previousState));
                 } else {
-                    TerminalState terminal = (TerminalState)roundState.boardStates.get(i);
+                    TerminalState terminal = (TerminalState)((RoundState)roundState).boardStates.get(i);
                     BoardState maker = (BoardState)terminal.previousState;
                     newBoardStates.add(new TerminalState(terminal.deltas,
                                                         new BoardState(maker.pot, maker.pips, maker.hands,
@@ -191,22 +191,22 @@ public class Runner {
             for (int i = 0; i < State.NUM_BOARDS; i++) {
                 String leftover = subclauses[i].substring(2, subclauses[i].length());
                 if ("".equals(leftover)) {
-                    newBoardStates.add(roundState.boardStates.get(i));
+                    newBoardStates.add(((RoundState)roundState).boardStates.get(i));
                 } else {
                     // backtrack
                     String[] cards = leftover.split(",");
-                    TerminalState terminal = (TerminalState)roundState.boardStates.get(i);
+                    TerminalState terminal = (TerminalState)((RoundState)roundState).boardStates.get(i);
                     BoardState maker = (BoardState)terminal.previousState;
                     List<List<String>> revisedHands = new ArrayList<List<String>>(maker.hands);
                     revisedHands.set(1 - active, Arrays.asList(cards[0], cards[1]));
                     newBoardStates.add(new TerminalState(terminal.deltas, new BoardState(maker.pot, maker.pips, revisedHands, maker.deck, maker.previousState, maker.settled)));
                 }
             }
-            roundState = new RoundState(roundState.button, roundState.street, roundState.stacks, roundState.hands, newBoardStates, roundState.previousState);
+            RoundState maker = (RoundState)roundState;
+            roundState = new RoundState(maker.button, maker.street, maker.stacks, maker.hands, newBoardStates, maker.previousState);
             return new TerminalState(Arrays.asList(0, 0), roundState);
         }
         else {
-            roundState = (RoundState)roundState;
             List<Action> actions = new ArrayList<Action>();
             for(String subclause : subclauses) {
                 String leftover = subclause.substring(2, subclause.length());
@@ -229,13 +229,14 @@ public class Runner {
                     }
                     case 'A': {
                         String[] cards = leftover.split(",");
-                        actions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, Arrays.asList(cards[0], cards[1])))
+                        actions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, Arrays.asList(cards[0], cards[1])));
                     }
                     default: {
                         break;
                     }
                 }
             }
+            return ((RoundState)roundState).proceed(actions);
         }
     }
 

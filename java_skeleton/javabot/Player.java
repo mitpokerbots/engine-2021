@@ -11,6 +11,7 @@ import javabot.skeleton.Bot;
 import javabot.skeleton.Runner;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 import java.lang.Integer;
 import java.lang.String;
