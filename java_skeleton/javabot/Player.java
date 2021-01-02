@@ -71,10 +71,10 @@ public class Player implements Bot {
      * @param active Your player's index.
      * @return Your action.
      */
-    public Action getAction(GameState gameState, RoundState roundState, int active) {
-        Set<ActionType> legalActions = roundState.legalActions();  // the actions you are allowed to take
+    public List<Action> getAction(GameState gameState, RoundState roundState, int active) {
+        List<Set<ActionType>> legalActions = roundState.legalActions();  // the actions you are allowed to take
         //int street = roundState.street;  // 0, 3, 4, or 5 representing pre-flop, flop, turn, or river respectively
-        //List<String> myCards = roundState.hands.get(active);  // your cards
+        List<String> myCards = roundState.hands.get(active);  // your cards
         //List<String> boardCards = roundState.deck;  // the board cards
         //int myPip = roundState.pips.get(active);  // the number of chips you have contributed to the pot this round of betting
         //int oppPip = roundState.pips.get(1-active);  // the number of chips your opponent has contributed to the pot this round of betting
@@ -88,10 +88,21 @@ public class Player implements Bot {
         //    int minCost = raiseBounds.get(0) - myPip;  // the cost of a minimum bet/raise
         //    int maxCost = raiseBounds.get(1) - myPip;  // the cost of a maximum bet/raise
         //}
-        if (legalActions.contains(ActionType.CHECK_ACTION_TYPE)) {  // check-call
-            return new Action(ActionType.CHECK_ACTION_TYPE);
+        List<Action> myActions = new ArrayList<Action>();
+        for (int i = 0; i < State.NUM_BOARDS; i++) {
+            Set<ActionType> legalBoardActions = legalActions.get(i);
+            if (legalBoardActions.contains(ActionType.ASSIGN_ACTION_TYPE)) { // default assignment of hands to boards
+                List<String> cards = new ArrayList<String>();
+                cards.add(myCards.get(2*i));
+                cards.add(myCards.get(2*i + 1));
+                myActions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, cards));
+            } else if (legalBoardActions.contains(ActionType.CHECK_ACTION_TYPE)) { // check-call
+                myActions.add(new Action(ActionType.CHECK_ACTION_TYPE));
+            } else {
+                myActions.add(new Action(ActionType.CALL_ACTION_TYPE));
+            }
         }
-        return new Action(ActionType.CALL_ACTION_TYPE);
+        return myActions;
     }
 
     /**
