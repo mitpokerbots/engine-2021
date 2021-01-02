@@ -452,7 +452,7 @@ class Game():
         code = ';'.join(codes)
         if 'A' in code:
             self.player_messages[active].append(code)
-            self.player_messages[1-active].append('S')
+            self.player_messages[1-active].append(';'.join([str(i) + 'A' for i in range(NUM_BOARDS)]))
         else:
             self.player_messages[0].append(code)
             self.player_messages[1].append(code)
