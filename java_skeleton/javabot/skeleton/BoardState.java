@@ -45,13 +45,6 @@ public class BoardState extends State {
     }
 
     /**
-     * Adds player pips to pot.
-     */
-    public void updatePot() {
-        this.pot += this.pips.stream().mapToInt(Integer::intValue).sum();
-    }
-
-    /**
      * Compares the players' hands and computes payoffs.
      */
     public State showdown() {
