@@ -84,7 +84,7 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
         Returns a set which corresponds to the active player's legal moves on this board.
         '''
         active = button % 2
-        if self.hands is None:
+        if (self.hands is None) or (len(self.hands[active]) == 0):
             return {AssignAction}
         elif self.settled:
             return {CheckAction}
