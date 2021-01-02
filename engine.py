@@ -502,8 +502,9 @@ class Game():
         self.player_messages[1].append(';'.join(log_message_one))
         self.log.append('{} awarded {}'.format(players[0].name, round_state.deltas[0]))
         self.log.append('{} awarded {}'.format(players[1].name, round_state.deltas[1]))
-        self.player_messages[0].append('D' + str(round_state.deltas[0]))
-        self.player_messages[1].append('D' + str(round_state.deltas[1]))
+        log_messages = ['D' + str(round_state.deltas[0]), 'D' + str(round_state.deltas[1])]
+        self.player_messages[0].append(';'.join(log_messages))
+        self.player_messages[1].append(';'.join(log_messages[::-1]))
 
     def run_round(self, players):
         '''
