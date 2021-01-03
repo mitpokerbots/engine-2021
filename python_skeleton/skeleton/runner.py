@@ -100,7 +100,7 @@ class Runner():
                 self.send(actions)
 
 
-def parse_multi_code(clause, roundState, active):
+def parse_multi_code(clause, round_state, active):
     subclauses = clause.split(';')
     if 'B' in clause:
         new_board_states = [None] * NUM_BOARDS
@@ -120,6 +120,7 @@ def parse_multi_code(clause, roundState, active):
         return RoundState(round_state.button, round_state.street, round_state.stacks, round_state.hands, new_board_states, round_state.previous_state)
     elif 'O' in clause:
         new_board_states = [None] * NUM_BOARDS
+        round_state = round_state.previous_state
         for i in range(NUM_BOARDS):
             leftover = subclauses[i][2:]
             if leftover == "":
@@ -135,7 +136,8 @@ def parse_multi_code(clause, roundState, active):
         return TerminalState([0, 0], round_state)
     else:
         actions = [None] * NUM_BOARDS
-        for subclause in subclauses:
+        for i in range(NUM_BOARDS):
+            subclause = subclauses[i]
             leftover = subclause[2:]
             if subclause[1] == 'F':
                 actions[i] = FoldAction()
@@ -145,7 +147,7 @@ def parse_multi_code(clause, roundState, active):
                 actions[i] = CheckAction()
             elif subclause[1] == 'R':
                 actions[i] = RaiseAction(int(leftover))
-            elif subcluase[1] == 'A':
+            elif subclause[1] == 'A':
                 cards = leftover.split(',')
                 if leftover == "":
                     actions[i] = AssignAction(["", ""])
