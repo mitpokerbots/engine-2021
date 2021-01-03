@@ -32,19 +32,19 @@ class Runner():
         '''
         Encodes actions and sends it to the engine.
         '''
-        code = ''
+        codes = [''] * NUM_BOARDS
         for i in range(NUM_BOARDS):
-            if isinstance(actions[i], FoldAction):
-                code += 'F'
+            if isinstance(actions[i], AssignAction):
+                codes[i] = str(i+1) + 'A' + ','.join(actions[i].cards)
+            elif isinstance(actions[i], FoldAction):
+                codes[i] = str(i+1) + 'F'
             elif isinstance(actions[i], CallAction):
-                code += 'C'
+                codes[i] = str(i+1) + 'C'
             elif isinstance(actions[i], CheckAction):
-                code += 'K'
-            elif isinstance(actions[i], AssignAction):
-                code += 'A'
+                codes[i] = str(i+1) + 'K'
             else:  # isinstance(action, RaiseAction)
-                code += 'R' + str(actions[i].amount)
-        code += ';'
+                codes[i] = str(i+1) + 'R' + str(actions[i].amount)
+        code = ';'.join(codes)
         self.socketfile.write(code + '\n')
         self.socketfile.flush()
        
@@ -105,6 +105,7 @@ class Runner():
                 action = self.pokerbot.get_action(game_state, round_state, active)
                 self.send(action)
 
+
 def parse_multi_code(clause, roundState, active):
     subclauses = clause.split(';')
     if clause.contains('B'):
@@ -138,10 +139,7 @@ def parse_multi_code(clause, roundState, active):
         round_state = round_state.proceed(RaiseAction(int(clause[1:])))   
     elif cluase[1] == 'A':
         # need to implement A changes
-
-
-
-
+        pass
 
 def parse_args():
     '''
