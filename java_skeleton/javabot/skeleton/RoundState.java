@@ -71,7 +71,16 @@ public class RoundState extends State {
     public List<Integer> raiseBounds() {
         int active = this.button % 2;
         if (active < 0) active += 2;
-        return Arrays.asList(0, this.stacks.get(active));
+        int netContinueCost = 0;
+        int netPipsUnsettled = 0;
+        for (State boardState : this.boardStates) {
+            if ((boardState instanceof BoardState) && (!((BoardState)boardState).settled)) {
+                BoardState bs = (BoardState)boardState;
+                netContinueCost += bs.pips.get(1-active) - bs.pips.get(active);
+                netPipsUnsettled += bs.pips.get(active);
+            }
+        }
+        return Arrays.asList(0, netPipsUnsettled + Math.min(this.stacks.get(active), this.stacks.get(1-active) + netContinueCost));
     }
 
     /**
