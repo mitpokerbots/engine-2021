@@ -395,7 +395,7 @@ class Player():
         if action in legal_actions:
             if clause[1] == 'R':
                 amount = int(clause[2:])
-                min_raise, max_raise = board_state.raise_bounds()
+                min_raise, max_raise = board_state.raise_bounds(button, stacks)
                 if min_raise <= amount <= max_raise:
                     return action(amount)
             elif clause[1] == 'A':

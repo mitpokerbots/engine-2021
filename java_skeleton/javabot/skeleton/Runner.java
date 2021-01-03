@@ -102,7 +102,9 @@ public class Runner {
                             )
                         );
                         hands.set(active, Arrays.asList(cards));
-                        hands.set(1 - active, Arrays.asList("", ""));
+                        String[] oppHands = new String[cards.length];
+                        Arrays.fill(oppHands, "");
+                        hands.set(1 - active, Arrays.asList(oppHands));
                         List<String> deck = new ArrayList<String>(Arrays.asList("", "", "", "", ""));
                         List<Integer> pips = Arrays.asList(State.SMALL_BLIND, State.BIG_BLIND);
                         boardStates = new ArrayList<State>();
