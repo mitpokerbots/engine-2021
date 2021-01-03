@@ -115,8 +115,8 @@ public class Player implements Bot {
             //     List<Integer> raiseBounds = (boardState.raiseBounds(active, Arrays.asList(myStack, oppStack)));  // the smallest and largest numbers of chips for a legal bet/raise on this board
             //     int minCost = raiseBounds.get(0) - myPips[i];  // the cost of a minimum bet/raise
             //     int maxCost = raiseBounds.get(1) - myPips[i];  // the cost of a maximum bet/raise
-            //     if (maxCost <= (myStack - netCost)) {
-            //         myActions.add(new Action(ActionType.RAISE_ACTION_TYPE, raiseBounds.get(1))); // example of all-in on first board
+            //     if (maxCost <= (myStack - netCost)) {   // example of all-in on first board
+            //         myActions.add(new Action(ActionType.RAISE_ACTION_TYPE, raiseBounds.get(1)));
             //         netCost += maxCost;
             //     } else if (legalBoardActions.contains(ActionType.CHECK_ACTION_TYPE)) { // check-call if all-in
             //         myActions.add(new Action(ActionType.CHECK_ACTION_TYPE));
