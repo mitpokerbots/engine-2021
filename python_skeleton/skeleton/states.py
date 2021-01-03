@@ -98,7 +98,8 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         '''
         Compares the players' hands and computes payoffs.
         '''
-        return TerminalState([0, 0], self)
+        terminal_board_states = [board_state.showdown() if isinstance(board_state, BoardState) else board_state for board_state in self.board_states]
+        return TerminalState([0, 0], RoundState(self.button, self.street, self.stacks, self.hands, terminal_board_states, self))
 
 
     def legal_actions(self):
