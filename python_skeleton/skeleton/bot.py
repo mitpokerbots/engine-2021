@@ -49,4 +49,4 @@ class Bot():
         Returns:
         Your actions.
         '''
-        raise NotImplementedError('get_action')
+        raise NotImplementedError('get_actions')
