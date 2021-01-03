@@ -113,8 +113,8 @@ public class Runner {
                                             Arrays.asList(new ArrayList<String>(), new ArrayList<String>()),
                                             deck, null));
                         }
-                        List<Integer> stacks = Arrays.asList(State.STARTING_STACK - State.SMALL_BLIND,
-                                                             State.STARTING_STACK - State.BIG_BLIND);
+                        List<Integer> stacks = Arrays.asList(State.STARTING_STACK - State.NUM_BOARDS*State.SMALL_BLIND,
+                                                             State.STARTING_STACK - State.NUM_BOARDS*State.BIG_BLIND);
                         roundState = new RoundState(-2, 0, stacks, hands, boardStates, null);
                         if (roundFlag) {
                             this.pokerbot.handleNewRound(gameState, (RoundState)roundState, active);

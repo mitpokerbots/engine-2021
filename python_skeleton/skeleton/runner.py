@@ -70,7 +70,7 @@ class Runner():
                     deck = ["", "", "", "", ""]
                     pips = [SMALL_BLIND, BIG_BLIND]
                     board_states = [BoardState((i+1)*BIG_BLIND, pips, None, deck, None) for i in range(NUM_BOARDS)]
-                    stacks = [STARTING_STACK - SMALL_BLIND, STARTING_STACK - BIG_BLIND]
+                    stacks = [STARTING_STACK - NUM_BOARDS*SMALL_BLIND, STARTING_STACK - NUM_BOARDS*BIG_BLIND]
                     round_state = RoundState(-2, 0, stacks, hands, board_states, None)
                     if round_flag:
                         self.pokerbot.handle_new_round(game_state, round_state, active)
