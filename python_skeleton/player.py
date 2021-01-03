@@ -2,7 +2,7 @@
 Simple example pokerbot, written in Python.
 '''
 from skeleton.actions import FoldAction, CallAction, CheckAction, RaiseAction, AssignAction
-from skeleton.states import GameState, TerminalState, RoundState
+from skeleton.states import GameState, TerminalState, RoundState, BoardState
 from skeleton.states import NUM_ROUNDS, STARTING_STACK, BIG_BLIND, SMALL_BLIND, NUM_BOARDS
 from skeleton.bot import Bot
 from skeleton.runner import parse_args, run_bot
