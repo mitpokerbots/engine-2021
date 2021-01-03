@@ -39,23 +39,23 @@ public class Runner {
         for (int i = 0; i < State.NUM_BOARDS; i++) {
             switch (actions.get(i).actionType) {
                 case ASSIGN_ACTION_TYPE: {
-                    codes[i] = i + "A" + String.join(",", actions.get(i).cards);
+                    codes[i+1] = i + "A" + String.join(",", actions.get(i).cards);
                     break;
                 }
                 case FOLD_ACTION_TYPE: {
-                    codes[i] = i + "F";
+                    codes[i+1] = i + "F";
                     break;
                 }
                 case CALL_ACTION_TYPE: {
-                    codes[i] = i + "C";
+                    codes[i+1] = i + "C";
                     break;
                 }
                 case CHECK_ACTION_TYPE: {
-                    codes[i] = i + "K";
+                    codes[i+1] = i + "K";
                     break;
                 }
                 default: {  // RAISE_ACTION_TYPE
-                    codes[i] = i + "R" + Integer.toString(actions.get(i).amount);
+                    codes[i+1] = i + "R" + Integer.toString(actions.get(i).amount);
                     break;
                 }
             }
