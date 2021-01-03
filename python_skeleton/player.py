@@ -1,9 +1,9 @@
 '''
 Simple example pokerbot, written in Python.
 '''
-from skeleton.actions import FoldAction, CallAction, CheckAction, RaiseAction
-from skeleton.states import GameState, TerminalState, RoundState
-from skeleton.states import NUM_ROUNDS, STARTING_STACK, BIG_BLIND, SMALL_BLIND
+from skeleton.actions import FoldAction, CallAction, CheckAction, RaiseAction, AssignAction
+from skeleton.states import GameState, TerminalState, RoundState, BoardState
+from skeleton.states import NUM_ROUNDS, STARTING_STACK, BIG_BLIND, SMALL_BLIND, NUM_BOARDS
 from skeleton.bot import Bot
 from skeleton.runner import parse_args, run_bot
 
@@ -63,7 +63,7 @@ class Player(Bot):
         #opp_cards = previous_state.hands[1-active]  # opponent's cards or [] if not revealed
         pass
 
-    def get_action(self, game_state, round_state, active):
+    def get_actions(self, game_state, round_state, active):
         '''
         Where the magic happens - your code should implement this function.
         Called any time the engine needs an action from your bot.
@@ -74,11 +74,11 @@ class Player(Bot):
         active: your player's index.
 
         Returns:
-        Your action.
+        Your actions.
         '''
         legal_actions = round_state.legal_actions()  # the actions you are allowed to take
         #street = round_state.street  # 0, 3, 4, or 5 representing pre-flop, flop, turn, or river respectively
-        #my_cards = round_state.hands[active]  # your cards
+        my_cards = round_state.hands[active]  # your cards
         #board_cards = round_state.deck[:street]  # the board cards
         #my_pip = round_state.pips[active]  # the number of chips you have contributed to the pot this round of betting
         #opp_pip = round_state.pips[1-active]  # the number of chips your opponent has contributed to the pot this round of betting
@@ -91,9 +91,16 @@ class Player(Bot):
         #    min_raise, max_raise = round_state.raise_bounds()  # the smallest and largest numbers of chips for a legal bet/raise
         #    min_cost = min_raise - my_pip  # the cost of a minimum bet/raise
         #    max_cost = max_raise - my_pip  # the cost of a maximum bet/raise
-        if CheckAction in legal_actions:  # check-call
-            return CheckAction()
-        return CallAction()
+        my_actions = []
+        for i in range(NUM_BOARDS):
+            if AssignAction in legal_actions[i]:
+                cards = [my_cards[2*i], my_cards[2*i+1]]
+                my_actions.append(AssignAction(cards))
+            elif CheckAction in legal_actions[i]:  # check-call
+                my_actions.append(CheckAction())
+            else:
+                my_actions.append(CallAction())
+        return my_actions
 
 
 if __name__ == '__main__':
