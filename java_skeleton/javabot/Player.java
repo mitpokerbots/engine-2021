@@ -121,7 +121,7 @@ public class Player implements Bot {
             //     } else if (legalBoardActions.contains(ActionType.CHECK_ACTION_TYPE)) { // check-call if all-in
             //         myActions.add(new Action(ActionType.CHECK_ACTION_TYPE));
             //     } else {
-            //         myActions.add(new Action(ActionType.CALL_ACTION_TYPE))
+            //         myActions.add(new Action(ActionType.CALL_ACTION_TYPE));
             //     }
             // }
             else if (legalBoardActions.contains(ActionType.CHECK_ACTION_TYPE)) { // check-call
