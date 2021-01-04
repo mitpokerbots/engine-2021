@@ -339,6 +339,7 @@ class Player():
         At the end of the round, we request NUM_BOARDS CheckAction's from the pokerbot.
         '''
         if self.socketfile is not None and self.game_clock > 0.:
+            clauses = ''
             try:
                 player_message[0] = 'T{:.3f}'.format(self.game_clock)
                 message = ' '.join(player_message) + '\n'
@@ -390,7 +391,7 @@ class Player():
                 print(error_message)
                 self.game_clock = 0.
             except (IndexError, KeyError, ValueError):
-                game_log.append(self.name + ' response misformatted')
+                game_log.append(self.name + ' response misformatted: ' + str(clauses))
         default_actions = round_state.legal_actions() if isinstance(round_state, RoundState) else [{CheckAction} for i in range(NUM_BOARDS)]
         return [CheckAction() if CheckAction in default else FoldAction() for default in default_actions]
 
