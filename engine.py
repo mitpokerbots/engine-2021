@@ -195,7 +195,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         all_terminal = [isinstance(board_state, TerminalState) for board_state in new_board_states]
         if self.street == 5 or all(all_terminal):
             return RoundState(self.button, 5, self.stacks, self.hands, new_board_states, self).showdown()
-        new_street = 3 if self.street == 0 else self.street + 1        
+        new_street = 3 if self.street == 0 else self.street + 1
         return RoundState(1, new_street, self.stacks, self.hands, new_board_states, self)
 
     def proceed(self, actions):
@@ -413,7 +413,7 @@ class Player():
             else:
                 return action()
         game_log.append(self.name + ' attempted illegal ' + action.__name__)
-        return CheckAction() if CheckAction in legal_actions else FoldAction() 
+        return CheckAction() if CheckAction in legal_actions else FoldAction()
 
 
 class Game():
