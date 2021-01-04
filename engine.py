@@ -37,19 +37,20 @@ POTVAL = lambda value: ', ({})'.format(value)
 #
 # T#.### the player's game clock
 # P# the player's index
-# H**,** the player's hand in common format
-# F a fold action in the round history
-# C a call action in the round history
-# K a check action in the round history
-# R### a raise action in the round history
-# B**,**,**,**,** the board cards in common format
-# O**,** the opponent's hand in common format
-# D### the player's bankroll delta from the round
+# H**,** the player's holde cards in common format
+# #F a fold action in the round history on a particular board
+# #C a call action in the round history on a particular board
+# #K a check action in the round history on a particular board
+# #R### a raise action in the round history on a particular board
+# #B**,**,**,**,** the board cards in common format for each board
+# #O**,** the opponent's hand in common format for each board
+# D###;D## the player's, followed by opponent's, bankroll delta from the round
 # Q game over
 #
+# Board clauses are separated by semicolons
 # Clauses are separated by spaces
 # Messages end with '\n'
-# The engine expects a response of K at the end of the round as an ack,
+# The engine expects a response of #K for each board at the end of the round as an ack,
 # otherwise a response which encodes the player's action
 # Action history is sent once, including the player's actions
 
