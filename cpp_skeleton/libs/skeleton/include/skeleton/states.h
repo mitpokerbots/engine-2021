@@ -41,7 +41,7 @@ struct BoardState : public State {
              StatePtr previousState, bool settled = false)
       : pot(pot), pips(std::move(pips)), hands(std::move(hands)),
         deck(std::move(deck)), previousState(std::move(previousState)),
-        settled(false) {}
+        settled(settled) {}
 
   StatePtr showdown() const;
 

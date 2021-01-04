@@ -73,13 +73,11 @@ private:
           std::move(newBoardStates), maker->previousState);
     } else if (contains(clause, "O")) {
       std::array<StatePtr, NUM_BOARDS> newBoardStates;
-      std::cout << *roundState << std::endl;
 
       roundState = std::static_pointer_cast<const TerminalState>(roundState)
                        ->previousState;
       for (auto i = 0; i < NUM_BOARDS; ++i) {
         auto leftover = subclauses[i].substr(2);
-        std::cout << leftover << std::endl;
 
         if (leftover.empty()) {
           newBoardStates[i] =
@@ -104,7 +102,6 @@ private:
         }
       }
 
-      std::cout << "Set terminal!" << std::endl;
       auto maker = std::static_pointer_cast<const RoundState>(roundState);
       return std::make_shared<TerminalState>(
           Deltas{0, 0},
@@ -156,7 +153,6 @@ private:
       codes.push_back(fmt::format(FMT_STRING("{}{}"), i + 1, *it));
       ++it;
     }
-    std::cout << fmt::format("Sending {}", fmt::join(codes, ";")) << std::endl;
     stream << fmt::format(FMT_STRING("{}"), fmt::join(codes, ";")) << '\n';
   }
 
@@ -196,8 +192,6 @@ public:
 
     while (true) {
       auto packets = receive();
-      std::cout << fmt::format("Receiving {}", fmt::join(packets, "-"))
-                << std::endl;
 
       for (const auto &clause : packets) {
         auto leftovers = clause.substr(1);
@@ -251,7 +245,6 @@ public:
           std::array<int, 2> deltas;
           deltas[active] = delta;
           deltas[1 - active] = oppDelta;
-          std::cout << "Set terminal!" << std::endl;
 
           roundState = std::make_shared<TerminalState>(
               std::move(deltas),

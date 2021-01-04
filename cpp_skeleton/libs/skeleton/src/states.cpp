@@ -107,12 +107,10 @@ std::ostream &BoardState::doFormat(std::ostream &os) const {
 
   fmt::print(os,
              FMT_STRING("board(pot={}, pips=[{}], hands=[{}], deck=[{}], "
-                        "settled={}, previousState={})"),
+                        "settled={})"),
              pot, fmt::join(pips.begin(), pips.end(), ", "),
              fmt::join(formattedHands.begin(), formattedHands.end(), ", "),
-             fmt::join(deck.begin(), deck.end(), ", "), settled,
-             previousState ? fmt::format(FMT_STRING("{}"), *previousState)
-                           : "none");
+             fmt::join(deck.begin(), deck.end(), ", "), settled);
   return os;
 }
 
@@ -124,7 +122,6 @@ StatePtr RoundState::showdown() const {
     else
       terminalBoardStates[i] = boardStates[i];
   }
-  std::cout << "showdown!" << std::endl;
   return std::make_shared<TerminalState>(
       Deltas{}, std::make_shared<RoundState>(button, street, stacks, hands,
                                              std::move(terminalBoardStates),
@@ -250,20 +247,16 @@ std::ostream &RoundState::doFormat(std::ostream &os) const {
 
   fmt::print(os,
              FMT_STRING("round(button={}, street={}, stacks=[{}], hands=[{}], "
-                        "boardStates=[{}], previousState={})"),
+                        "boardStates=[{}])"),
              button, street, fmt::join(stacks.begin(), stacks.end(), ", "),
              fmt::join(formattedHands.begin(), formattedHands.end(), ","),
-             fmt::join(formattedBoards.begin(), formattedBoards.end(), ", "),
-             previousState ? fmt::format(FMT_STRING("{}"), *previousState)
-                           : "none");
+             fmt::join(formattedBoards.begin(), formattedBoards.end(), ", "));
   return os;
 }
 
 std::ostream &TerminalState::doFormat(std::ostream &os) const {
-  fmt::print(os, FMT_STRING("terminal(deltas=[{}], previousState={})"),
-             fmt::join(deltas.begin(), deltas.end(), ", "),
-             previousState ? fmt::format(FMT_STRING("{}"), *previousState)
-                           : "none");
+  fmt::print(os, FMT_STRING("terminal(deltas=[{}])"),
+             fmt::join(deltas.begin(), deltas.end(), ", "));
   return os;
 }
 
