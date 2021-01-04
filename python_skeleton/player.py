@@ -96,11 +96,11 @@ class Player(Bot):
         for i in range(NUM_BOARDS):
             if AssignAction in legal_actions[i]:
                 cards = [my_cards[2*i], my_cards[2*i+1]]
-                my_actions.append(AssignAction(cards))
+                my_actions[i] = AssignAction(cards)
             elif CheckAction in legal_actions[i]:  # check-call
-                my_actions.append(CheckAction())
+                my_actions[i] = CheckAction()
             else:
-                my_actions.append(CallAction())
+                my_actions[i] = CallAction()
         return my_actions
 
 
