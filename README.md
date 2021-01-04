@@ -8,8 +8,9 @@ The command to run the engine is ```python3 engine.py```. The engine is configur
  - cython (pip install cython)
  - eval7 (pip install eval7)
  - Java>=8 for java_skeleton
- - C++11 for cpp_skeleton
+ - C++17 for cpp_skeleton
  - boost for cpp_skeleton (sudo apt install libboost-all-dev)
+ - fmt for cpp_skeleton
 
 ## Linting
 Use pylint.
