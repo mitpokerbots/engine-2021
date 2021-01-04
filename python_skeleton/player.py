@@ -116,7 +116,7 @@ class Player(Bot):
             #    max_cost = max_raise - my_pip  # the cost of a maximum bet/raise
             #     if max_raise <= my_stack - net_cost:
             #         my_actions.append(RaiseAction(),max_raise)
-            #     net_cost += max_cost
+            #         net_cost += max_cost
             elif CheckAction in legal_actions[i]:  # check-call
                 my_actions.append(CheckAction())
             else:
