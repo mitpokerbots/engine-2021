@@ -110,6 +110,7 @@ public class Player implements Bot {
                 cards.add(myCards.get(2*i + 1));
                 myActions.add(new Action(ActionType.ASSIGN_ACTION_TYPE, cards));
             }
+
             // else if (legalBoardActions.contains(ActionType.RAISE_ACTION_TYPE)) {
             //     BoardState boardState = (BoardState)roundState.boardStates.get(i);
             //     List<Integer> raiseBounds = (boardState.raiseBounds(active, Arrays.asList(myStack, oppStack)));  // the smallest and largest numbers of chips for a legal bet/raise on this board
