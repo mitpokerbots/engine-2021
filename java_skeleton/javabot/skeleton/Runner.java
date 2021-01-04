@@ -39,23 +39,23 @@ public class Runner {
         for (int i = 0; i < State.NUM_BOARDS; i++) {
             switch (actions.get(i).actionType) {
                 case ASSIGN_ACTION_TYPE: {
-                    codes[i] = i + "A" + String.join(",", actions.get(i).cards);
+                    codes[i] = (i + 1) + "A" + String.join(",", actions.get(i).cards);
                     break;
                 }
                 case FOLD_ACTION_TYPE: {
-                    codes[i] = i + "F";
+                    codes[i] = (i + 1) + "F";
                     break;
                 }
                 case CALL_ACTION_TYPE: {
-                    codes[i] = i + "C";
+                    codes[i] = (i + 1) + "C";
                     break;
                 }
                 case CHECK_ACTION_TYPE: {
-                    codes[i] = i + "K";
+                    codes[i] = (i + 1) + "K";
                     break;
                 }
                 default: {  // RAISE_ACTION_TYPE
-                    codes[i] = i + "R" + Integer.toString(actions.get(i).amount);
+                    codes[i] = (i + 1) + "R" + Integer.toString(actions.get(i).amount);
                     break;
                 }
             }
@@ -102,7 +102,9 @@ public class Runner {
                             )
                         );
                         hands.set(active, Arrays.asList(cards));
-                        hands.set(1 - active, Arrays.asList("", ""));
+                        String[] oppHands = new String[cards.length];
+                        Arrays.fill(oppHands, "");
+                        hands.set(1 - active, Arrays.asList(oppHands));
                         List<String> deck = new ArrayList<String>(Arrays.asList("", "", "", "", ""));
                         List<Integer> pips = Arrays.asList(State.SMALL_BLIND, State.BIG_BLIND);
                         boardStates = new ArrayList<State>();
@@ -111,8 +113,8 @@ public class Runner {
                                             Arrays.asList(new ArrayList<String>(), new ArrayList<String>()),
                                             deck, null));
                         }
-                        List<Integer> stacks = Arrays.asList(State.STARTING_STACK - State.SMALL_BLIND,
-                                                             State.STARTING_STACK - State.BIG_BLIND);
+                        List<Integer> stacks = Arrays.asList(State.STARTING_STACK - State.NUM_BOARDS*State.SMALL_BLIND,
+                                                             State.STARTING_STACK - State.NUM_BOARDS*State.BIG_BLIND);
                         roundState = new RoundState(-2, 0, stacks, hands, boardStates, null);
                         if (roundFlag) {
                             this.pokerbot.handleNewRound(gameState, (RoundState)roundState, active);

@@ -174,7 +174,13 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         Returns a tuple of the minimum and maximum legal raises summed across boards.
         '''
         active = self.button % 2
-        return (0, self.stacks[active])
+        net_continue_cost = 0
+        net_pips_unsettled = 0
+        for board_state in self.board_states:
+            if isinstance(board_state, BoardState) and not board_state.settled:
+                net_continue_cost += board_state.pips[1-active] - board_state.pips[active]
+                net_pips_unsettled += board_state.pips[active]
+        return (0, net_pips_unsettled + min(self.stacks[active], self.stacks[1-active] + net_continue_cost))
 
     def proceed_street(self):
         '''
@@ -395,7 +401,7 @@ class Player():
         if action in legal_actions:
             if clause[1] == 'R':
                 amount = int(clause[2:])
-                min_raise, max_raise = board_state.raise_bounds()
+                min_raise, max_raise = board_state.raise_bounds(button, stacks)
                 if min_raise <= amount <= max_raise:
                     return action(amount)
             elif clause[1] == 'A':
