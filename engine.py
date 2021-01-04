@@ -437,14 +437,16 @@ class Game():
         elif round_state.street > 0 and round_state.button == 1:
             boards = [board_state.deck.peek(round_state.street) if isinstance(board_state, BoardState) else board_state.previous_state.deck.peek(round_state.street) for board_state in round_state.board_states]
             for i in range(NUM_BOARDS):
-                log_message = STREET_NAMES[round_state.street - 3] + ' ' + PCARDS(boards[i])
+                log_message = ''
                 if isinstance(round_state.board_states[i], BoardState):
+                    log_message += STREET_NAMES[round_state.street - 3] + ' ' + PCARDS(boards[i])
                     log_message += POTVAL(round_state.board_states[i].pot)
+                    log_message += PVALUE(players[0].name, round_state.stacks[0])
+                    log_message += PVALUE(players[1].name, round_state.stacks[1])
+                    log_message += ' on board ' + str(i+1)
                 else:
+                    log_message = 'Board {}'.format(i+1)
                     log_message += POTVAL(round_state.board_states[i].previous_state.pot)
-                log_message += PVALUE(players[0].name, round_state.stacks[0])
-                log_message += PVALUE(players[1].name, round_state.stacks[1])
-                log_message += ' on board ' + str(i+1)
                 self.log.append(log_message)
             compressed_board = ';'.join([str(i+1) + 'B' + CCARDS(boards[i]) for i in range(NUM_BOARDS)])
             self.player_messages[0].append(compressed_board)
