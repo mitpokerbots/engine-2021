@@ -51,7 +51,7 @@ public class RoundState extends State {
     }
 
     /**
-     * Returns the active player's legal moves.
+     * Returns the active player's legal moves on each board.
      */
     public List<Set<ActionType>> legalActions() {
         List<Set<ActionType>> output = new ArrayList<Set<ActionType>>();
@@ -84,7 +84,7 @@ public class RoundState extends State {
     }
 
     /**
-     * Resets the players' pips and advances the game tree to the next round of betting.
+     * Resets the players' pips on each board and advances the game tree to the next round of betting.
      */
     public State proceedStreet() {
         int[] newPots = new int[State.NUM_BOARDS];
@@ -120,7 +120,7 @@ public class RoundState extends State {
     }
 
     /**
-     * Advances the game tree by one list of action performed by the active player.
+     * Advances the game tree by one list of actions performed by the active player across all boards.
      */
     public State proceed(List<Action> actions) {
         List<State> newBoardStates = new ArrayList<State>();

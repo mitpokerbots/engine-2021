@@ -46,7 +46,7 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
 
     def raise_bounds(self, button, stacks):
         '''
-        Returns a tuple of the minimum and maximum legal raises.
+        Returns a tuple of the minimum and maximum legal raises on this board.
         '''
         active = button % 2
         continue_cost = self.pips[1-active] - self.pips[active]
@@ -104,7 +104,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
 
     def legal_actions(self):
         '''
-        Returns a set which corresponds to the active player's legal moves.
+        Returns a list of sets which correspond to the active player's legal moves on each board.
         '''
         return [board_state.legal_actions(self.button, self.stacks) if isinstance(board_state, BoardState) else {CheckAction} for board_state in self.board_states]
 
@@ -123,7 +123,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
 
     def proceed_street(self):
         '''
-        Resets the players' pips and advances the game tree to the next round of betting.
+        Resets the players' pips on each board and advances the game tree to the next round of betting.
         '''
         new_pots = [0]*NUM_BOARDS
         for i in range(NUM_BOARDS):
@@ -138,7 +138,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
 
     def proceed(self, actions):
         '''
-        Advances the game tree by one tuple of actions performed by the active player.
+        Advances the game tree by one tuple of actions performed by the active player across all boards.
         '''
         new_board_states = [self.board_states[i].proceed(actions[i], self.button, self.street) if isinstance(self.board_states[i], BoardState) else self.board_states[i] for i in range(NUM_BOARDS)]
         active = self.button % 2

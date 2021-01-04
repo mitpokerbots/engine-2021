@@ -52,7 +52,7 @@ public class BoardState extends State {
     }
 
     /**
-     * Returns the active player's legal moves.
+     * Returns the active player's legal moves on this board.
      */
     public Set<ActionType> legalActions(int button, List<Integer> stacks) {
         int active = button % 2;
@@ -84,7 +84,7 @@ public class BoardState extends State {
     }
 
     /**
-     * Returns a list of the minimum and maximum legal raises.
+     * Returns a list of the minimum and maximum legal raises on this board.
      */
     public List<Integer> raiseBounds(int button, List<Integer> stacks) {
         int active = button % 2;
