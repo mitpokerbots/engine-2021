@@ -130,7 +130,8 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
             if isinstance(self.board_states[i], BoardState):
                 new_pots[i] = self.board_states[i].pot + sum(self.board_states[i].pips)
         new_board_states = [BoardState(new_pots[i], [0, 0], self.board_states[i].hands, self.board_states[i].deck, self.board_states[i]) if isinstance(self.board_states[i], BoardState) else self.board_states[i] for i in range(NUM_BOARDS)]
-        if self.street == 5:
+        all_terminal = [isinstance(board_state, TerminalState) for board_state in new_board_states]
+        if self.street == 5 or all(all_terminal):
             return RoundState(self.button, 5, self.stacks, self.hands, new_board_states, self).showdown()
         new_street = 3 if self.street == 0 else self.street + 1        
         return RoundState(1, new_street, self.stacks, self.hands, new_board_states, self)

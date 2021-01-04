@@ -103,7 +103,11 @@ public class RoundState extends State {
                 newBoardStates.add(this.boardStates.get(i));
             }
         }
-        if (this.street == 5) {
+        List<Boolean> allTerminal = new ArrayList<Boolean>();
+        for (State boardState : newBoardStates) {
+            allTerminal.add(boardState instanceof TerminalState);
+        }
+        if ((this.street == 5) || (!allTerminal.contains(false))) {
             return (new RoundState(this.button, 5, this.stacks, this.hands, newBoardStates, this)).showdown();
         }
         int newStreet;
@@ -137,7 +141,7 @@ public class RoundState extends State {
             }
         }
         newStacks.set(active, newStacks.get(active) - contribution);
-        ArrayList<Boolean> settled = new ArrayList<Boolean>();
+        List<Boolean> settled = new ArrayList<Boolean>();
         for (State boardState : newBoardStates) {
             settled.add((boardState instanceof TerminalState) || (((BoardState)boardState).settled));
         }
