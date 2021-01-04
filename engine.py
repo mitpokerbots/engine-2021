@@ -436,7 +436,7 @@ class Game():
             self.player_messages[0] = ['T0.', 'P0', 'H' + CCARDS(round_state.hands[0])]
             self.player_messages[1] = ['T0.', 'P1', 'H' + CCARDS(round_state.hands[1])]
         elif round_state.street > 0 and round_state.button == 1:
-            boards = [board_state.deck.peek(round_state.street) if isinstance(board_state, BoardState) else board_state.previous_state.deck.peek(round_state.street) for board_state in round_state.board_states]
+            boards = [board_state.deck.peek(round_state.street) if isinstance(board_state, BoardState) else [] for board_state in round_state.board_states]
             for i in range(NUM_BOARDS):
                 log_message = ''
                 if isinstance(round_state.board_states[i], BoardState):
