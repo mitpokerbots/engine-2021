@@ -191,7 +191,8 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
             if isinstance(self.board_states[i], BoardState):
                 new_pots[i] = self.board_states[i].pot + sum(self.board_states[i].pips)
         new_board_states = [BoardState(new_pots[i], [0, 0], self.board_states[i].hands, self.board_states[i].deck, self.board_states[i]) if isinstance(self.board_states[i], BoardState) else self.board_states[i] for i in range(NUM_BOARDS)]
-        if self.street == 5:
+        all_terminal = [isinstance(board_state, TerminalState) for board_state in new_board_states]
+        if self.street == 5 or all(all_terminal):
             return RoundState(self.button, 5, self.stacks, self.hands, new_board_states, self).showdown()
         new_street = 3 if self.street == 0 else self.street + 1        
         return RoundState(1, new_street, self.stacks, self.hands, new_board_states, self)
@@ -437,14 +438,16 @@ class Game():
         elif round_state.street > 0 and round_state.button == 1:
             boards = [board_state.deck.peek(round_state.street) if isinstance(board_state, BoardState) else board_state.previous_state.deck.peek(round_state.street) for board_state in round_state.board_states]
             for i in range(NUM_BOARDS):
-                log_message = STREET_NAMES[round_state.street - 3] + ' ' + PCARDS(boards[i])
+                log_message = ''
                 if isinstance(round_state.board_states[i], BoardState):
+                    log_message += STREET_NAMES[round_state.street - 3] + ' ' + PCARDS(boards[i])
                     log_message += POTVAL(round_state.board_states[i].pot)
+                    log_message += PVALUE(players[0].name, round_state.stacks[0])
+                    log_message += PVALUE(players[1].name, round_state.stacks[1])
+                    log_message += ' on board ' + str(i+1)
                 else:
+                    log_message = 'Board {}'.format(i+1)
                     log_message += POTVAL(round_state.board_states[i].previous_state.pot)
-                log_message += PVALUE(players[0].name, round_state.stacks[0])
-                log_message += PVALUE(players[1].name, round_state.stacks[1])
-                log_message += ' on board ' + str(i+1)
                 self.log.append(log_message)
             compressed_board = ';'.join([str(i+1) + 'B' + CCARDS(boards[i]) for i in range(NUM_BOARDS)])
             self.player_messages[0].append(compressed_board)

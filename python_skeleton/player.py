@@ -121,6 +121,7 @@ class Player(Bot):
             #         my_actions.append(CallAction())
             #     else:
             #         my_actions.append(CheckAction())
+
             elif CheckAction in legal_actions[i]:  # check-call
                 my_actions.append(CheckAction())
             else:
