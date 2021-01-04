@@ -1,5 +1,7 @@
 __pycache__/
-*.txt
+A.txt
+B.txt
+gamelog.txt
 *.class
 .DS_Store
 .idea/
