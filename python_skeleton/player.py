@@ -57,10 +57,10 @@ class Player(Bot):
         Returns:
         Nothing.
         '''
-        #my_delta = terminal_state.deltas[active]  # your bankroll change from this round
-        #opp_delta = terminal_state.deltas[1-active] # your opponent's bankroll change from this round 
-        #previous_state = terminal_state.previous_state  # RoundState before payoffs
-        #street = previous_state.street  # 0, 3, 4, or 5 representing when this round ended
+        # my_delta = terminal_state.deltas[active]  # your bankroll change from this round
+        # opp_delta = terminal_state.deltas[1-active] # your opponent's bankroll change from this round 
+        # previous_state = terminal_state.previous_state  # RoundState before payoffs
+        # street = previous_state.street  # 0, 3, 4, or 5 representing when this round ended
         # for terminal_board_state in previous_state.board_states:
         #     previous_board_state = terminal_board_state.previous_state
         #     my_cards = previous_board_state.hands[active]  # your cards
@@ -83,45 +83,30 @@ class Player(Bot):
         legal_actions = round_state.legal_actions()  # the actions you are allowed to take
         # street = round_state.street  # 0, 3, 4, or 5 representing pre-flop, flop, turn, or river respectively
         my_cards = round_state.hands[active]  # your cards across all boards
-        # board_cards = [] #the board cards
-        # my_pips = [] # the number of chips you have contributed to the pot on each board this round of betting
-        # opp_pips = [] # the number of chips your opponent has contributed to the pot on each board this round of betting
-        # continue_cost = [] #the number of chips needed to stay in each pot
-        # for i in range(NUM_BOARDS):
-        #     temp_board_state = round_state.board_states[i]
-        #     if isinstance(temp_board_state, TerminalState): #folded board
-        #         board_cards.append(temp_board_state.previous_state.deck)
-        #         my_pips.append(0)
-        #         opp_pips.append(0)
-        #     else: # no one folded
-        #         board_cards.append(temp_board_state.deck[:street])
-        #         my_pips.append(temp_board_state.pips[active])
-        #         opp_pips.append(temp_board_state.pips[1-active])
-        #     continue_cost.append(opp_pips[i]-my_pips[i])
-        # my_stack = round_state.stacks[active]  # the number of chips you have remaining
-        # opp_stack = round_state.stacks[1-active]  # the number of chips your opponent has remaining
-        # stacks = [my_stack, opp_stack]
-        # net_upper_raise_bound = round_state.raise_bounds()[1] #max raise across 3 boards
-        # net_cost = 0 #keep track of the net additional amount you are spending across boards this round
-        my_actions = []
+        board_cards = [board_state.deck if isinstance(board_state, BoardState) else board_state.previous_state.deck for board_state in round_state.board_states] #the board cards
+        my_pips = [board_state.pips[active] if isinstance(board_state, BoardState) else 0 for board_state in round_state.board_states] # the number of chips you have contributed to the pot on each board this round of betting
+        opp_pips = [board_state.pips[1-active] if isinstance(board_state, BoardState) else 0 for board_state in round_state.board_states] # the number of chips your opponent has contributed to the pot on each board this round of betting
+        continue_cost = [opp_pips[i] - my_pips[i] for i in range(NUM_BOARDS)] #the number of chips needed to stay in each board's pot
+        my_stack = round_state.stacks[active]  # the number of chips you have remaining
+        opp_stack = round_state.stacks[1-active]  # the number of chips your opponent has remaining
+        stacks = [my_stack, opp_stack]
+        net_upper_raise_bound = round_state.raise_bounds()[1] # max raise across 3 boards
+        net_cost = 0 # keep track of the net additional amount you are spending across boards this round
+        my_actions = [None] * NUM_BOARDS
         for i in range(NUM_BOARDS):
             if AssignAction in legal_actions[i]:
                 cards = [my_cards[2*i], my_cards[2*i+1]]
                 my_actions.append(AssignAction(cards))
-            # elif RaiseAction in legal_actions[i]:
-            #     min_raise, max_raise = round_state.board_states[i].raise_bounds(active, stacks)  # the smallest and largest numbers of chips for a legal bet/raise on this board 
-            #     max_cost = max_raise - my_pips[i]  # the cost of a maximum bet/raise
-            #     print (max_cost)
-            #     print (my_stack)
-            #     print (net_cost)
-            #     if max_cost < my_stack - net_cost:
-            #         my_actions.append(RaiseAction(max_raise))
-            #         net_cost += max_cost
-            #     elif CallAction in legal_actions[i]:  # check-call
-            #         my_actions.append(CallAction())
-            #     else:
-            #         my_actions.append(CheckAction())
-
+            elif RaiseAction in legal_actions[i]:
+                min_raise, max_raise = round_state.board_states[i].raise_bounds(active, stacks) # the smallest and largest numbers of chips for a legal bet/raise on this board 
+                max_cost = max_raise - my_pips[i]  # the cost of a maximum bet/raise
+                if max_cost <= my_stack - net_cost:
+                    my_actions.append(RaiseAction(max_raise))
+                    net_cost += max_cost
+                elif CallAction in legal_actions[i]:  # check-call
+                    my_actions.append(CallAction())
+                else:
+                    my_actions.append(CheckAction())
             elif CheckAction in legal_actions[i]:  # check-call
                 my_actions.append(CheckAction())
             else:
