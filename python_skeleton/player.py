@@ -100,13 +100,23 @@ class Player(Bot):
         #     continue_cost.append(opp_pips[i]-my_pips[i])
         #my_stack = round_state.stacks[active]  # the number of chips you have remaining
         #opp_stack = round_state.stacks[1-active]  # the number of chips your opponent has remaining
-        # net_upper_raise_bound = round_state.raise_bounds[1] #max raise across 3 boards
+        # net_upper_raise_bound = round_state.raise_bounds()[1] #max raise across 3 boards
         # net_cost = 0 #keep track of the net additional amount you are spending across boards this round
+        #    min_raise, max_raise = round_state.raise_bounds()  # the smallest and largest numbers of chips for a legal bet/raise on this board 
+        #    min_cost = min_raise - my_pip  # the cost of a minimum bet/raise
+        #    max_cost = max_raise - my_pip  # the cost of a maximum bet/raise
         my_actions = []
         for i in range(NUM_BOARDS):
             if AssignAction in legal_actions[i]:
                 cards = [my_cards[2*i], my_cards[2*i+1]]
                 my_actions.append(AssignAction(cards))
+            # elif RaiseAction in legal_actions[i]:
+            #    min_raise, max_raise = round_state.raise_bounds()  # the smallest and largest numbers of chips for a legal bet/raise on this board 
+            #    min_cost = min_raise - my_pip  # the cost of a minimum bet/raise
+            #    max_cost = max_raise - my_pip  # the cost of a maximum bet/raise
+            #     if max_raise <= my_stack - net_cost:
+            #         my_actions.append(RaiseAction(),max_raise)
+            #     net_cost += max_cost
             elif CheckAction in legal_actions[i]:  # check-call
                 my_actions.append(CheckAction())
             else:
