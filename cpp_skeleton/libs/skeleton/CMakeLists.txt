@@ -12,7 +12,11 @@ set(Boost_USE_MULTITHREAD OFF)
 find_package(Boost REQUIRED date_time system)
 
 include_directories(${Boost_INCLUDE_DIR})
-target_link_libraries(skeleton ${Boost_SYSTEM_LIBRARY})
+target_link_libraries(skeleton PUBLIC ${Boost_SYSTEM_LIBRARY})
 
 find_package(fmt)
-target_link_libraries(skeleton fmt::fmt)
+target_link_libraries(skeleton PUBLIC fmt::fmt)
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(skeleton PUBLIC Threads::Threads)
