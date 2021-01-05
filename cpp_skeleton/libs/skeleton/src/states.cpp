@@ -154,7 +154,7 @@ RaiseBounds RoundState::raiseBounds() const {
       }
   }
 
-  return {0, netPipsUnsettled + std::max(stacks[active],
+  return {0, netPipsUnsettled + std::min(stacks[active],
                                          stacks[1 - active] + netContinueCost)};
 }
 

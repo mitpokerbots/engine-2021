@@ -69,7 +69,7 @@ class Runner():
                     hands[1-active] = ['']*(2*NUM_BOARDS)
                     deck = ["", "", "", "", ""]
                     pips = [SMALL_BLIND, BIG_BLIND]
-                    board_states = [BoardState((i+1)*BIG_BLIND, pips, None, deck, None) for i in range(NUM_BOARDS)]
+                    board_states = [BoardState((i+1)*BIG_BLIND, pips, [[]]*2, deck, None) for i in range(NUM_BOARDS)]
                     stacks = [STARTING_STACK - NUM_BOARDS*SMALL_BLIND, STARTING_STACK - NUM_BOARDS*BIG_BLIND]
                     round_state = RoundState(-2, 0, stacks, hands, board_states, None)
                     if round_flag:
