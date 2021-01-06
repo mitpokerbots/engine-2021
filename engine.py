@@ -372,7 +372,12 @@ class Player():
                             contribution += actions[i].amount - round_state.board_states[i].pips[index]
                         elif isinstance(actions[i], CallAction):
                             contribution += round_state.board_states[i].pips[1-index] - round_state.board_states[i].pips[index]
-                    min_contribution, max_contribution = (0, round_state.stacks[index]) if isinstance(round_state, RoundState) else (0, 0)
+                    min_contribution = 0
+                    if isinstance(round_state, RoundState):
+                        net_pips = sum([round_state.board_states[i].pips[index] if isinstance(round_state.board_states[i], BoardState) else 0 for i in range(NUM_BOARDS)])
+                        max_contribution = round_state.stacks[index] - net_pips
+                    else:
+                        max_contribution = 0
                     if min_contribution <= contribution <= max_contribution:
                         return actions
                     #else: (attempted negative net raise or net raise larger than bankroll)
