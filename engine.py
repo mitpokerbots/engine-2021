@@ -438,8 +438,8 @@ class Game():
         Incorporates RoundState information into the game log and player messages.
         '''
         if round_state.street == 0 and round_state.button == -2:
-            self.log.append('{} posts the blind of {}'.format(players[0].name, SMALL_BLIND))
-            self.log.append('{} posts the blind of {}'.format(players[1].name, BIG_BLIND))
+            self.log.append('{} posts the blind of {} on each board'.format(players[0].name, SMALL_BLIND))
+            self.log.append('{} posts the blind of {} on each board'.format(players[1].name, BIG_BLIND))
             self.log.append('{} dealt {}'.format(players[0].name, PCARDS(round_state.hands[0])))
             self.log.append('{} dealt {}'.format(players[1].name, PCARDS(round_state.hands[1])))
             self.player_messages[0] = ['T0.', 'P0', 'H' + CCARDS(round_state.hands[0])]
