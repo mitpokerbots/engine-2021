@@ -366,12 +366,14 @@ class Player():
                     #else: (assigned cards not in hand or some cards unassigned)
                     game_log.append(self.name + ' attempted illegal assignment')
                 else:
-                    total_raise = 0
-                    for action in actions:
-                        if isinstance(action, RaiseAction):
-                            total_raise += action.amount
-                    min_raise, max_raise = round_state.raise_bounds() if isinstance(round_state, RoundState) else (0, 0)
-                    if min_raise <= total_raise <= max_raise:
+                    contribution = 0
+                    for i in range(NUM_BOARDS):
+                        if isinstance(actions[i], RaiseAction):
+                            contribution += actions[i].amount - round_state.board_states[i].pips[index]
+                        elif isinstance(actions[i], CallAction):
+                            contribution += round_state.board_states[i].pips[1-index] - round_state.board_states[i].pips[index]
+                    min_contribution, max_contribution = (0, round_state.stacks[index]) if isinstance(round_state, RoundState) else (0, 0)
+                    if min_contribution <= contribution <= max_contribution:
                         return actions
                     #else: (attempted negative net raise or net raise larger than bankroll)
                     game_log.append(self.name + " attempted net illegal RaiseAction's")
