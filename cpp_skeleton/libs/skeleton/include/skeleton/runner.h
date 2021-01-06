@@ -131,7 +131,7 @@ private:
           boost::split(cards, leftover, boost::is_any_of(","));
 
           if (leftover.empty()) {
-            actions[i] = {Action::Type::ASSIGN, std::array<Card, 2>{}};
+            actions[i] = {Action::Type::ASSIGN, std::array<Card, 2>{"", ""}};
           } else {
             actions[i] = {Action::Type::ASSIGN, {cards[0], cards[1]}};
           }

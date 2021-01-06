@@ -58,7 +58,9 @@ StatePtr BoardState::proceed(Action action, int button, int street) const {
   case Action::Type::ASSIGN: {
     std::array<std::array<Card, 2>, 2> newHands;
     newHands[active] = action.cards;
-    newHands[1 - active] = hands[1 - active];
+    if (!isEmpty(hands[1-active])) {
+      newHands[1-active] = hands[1-active];
+    }
     return std::make_shared<BoardState>(pot, pips, std::move(newHands), deck,
                                         getShared());
   }
