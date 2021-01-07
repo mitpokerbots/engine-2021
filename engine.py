@@ -425,6 +425,8 @@ class Player():
             if clause[1] == 'R':
                 amount = int(clause[2:])
                 min_raise, max_raise = board_state.raise_bounds(button, stacks)
+                raise_delta = amount - board_states.pips[button % 2]
+                min_raise = 0 if stacks[button % 2] - raise_delta == 0 else min_raise
                 if min_raise <= amount <= max_raise:
                     return action(amount)
             elif clause[1] == 'A':
