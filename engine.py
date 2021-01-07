@@ -381,7 +381,7 @@ class Player():
                     if min_contribution <= contribution <= max_contribution:
                         return actions
                     #else: (attempted negative net raise or net raise larger than bankroll)
-                    game_log.append(self.name + " attempted net illegal RaiseAction's")
+                    game_log.append(self.name + " attempted net illegal RaiseAction's or CallAction's")
             except socket.timeout:
                 error_message = self.name + ' ran out of time'
                 game_log.append(error_message)
