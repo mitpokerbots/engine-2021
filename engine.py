@@ -12,7 +12,6 @@ import socket
 import eval7
 import sys
 import os
-import copy
 
 sys.path.append(os.getcwd())
 from config import *
