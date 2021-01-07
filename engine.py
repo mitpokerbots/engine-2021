@@ -169,19 +169,6 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         '''
         return [board_state.legal_actions(self.button, self.stacks) if isinstance(board_state, BoardState) else {CheckAction} for board_state in self.board_states]
 
-    def raise_bounds(self):
-        '''
-        Returns a tuple of the minimum and maximum legal raises summed across boards.
-        '''
-        active = self.button % 2
-        net_continue_cost = 0
-        net_pips_unsettled = 0
-        for board_state in self.board_states:
-            if isinstance(board_state, BoardState) and not board_state.settled:
-                net_continue_cost += board_state.pips[1-active] - board_state.pips[active]
-                net_pips_unsettled += board_state.pips[active]
-        return (0, net_pips_unsettled + min(self.stacks[active], self.stacks[1-active] + net_continue_cost))
-
     def proceed_street(self):
         '''
         Resets the players' pips on each board and advances the game tree to the next round of betting.
@@ -425,7 +412,7 @@ class Player():
             if clause[1] == 'R':
                 amount = int(clause[2:])
                 min_raise, max_raise = board_state.raise_bounds(button, stacks)
-                raise_delta = amount - board_states.pips[button % 2]
+                raise_delta = amount - board_state.pips[button % 2]
                 min_raise = 0 if stacks[button % 2] - raise_delta == 0 else min_raise
                 if min_raise <= amount <= max_raise:
                     return action(amount)
