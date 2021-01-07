@@ -373,8 +373,7 @@ class Player():
                             contribution += round_state.board_states[i].pips[1-index] - round_state.board_states[i].pips[index]
                     min_contribution = 0
                     if isinstance(round_state, RoundState):
-                        net_pips = sum([round_state.board_states[i].pips[index] if isinstance(round_state.board_states[i], BoardState) else 0 for i in range(NUM_BOARDS)])
-                        max_contribution = round_state.stacks[index] - net_pips
+                        max_contribution = round_state.stacks[index]
                     else:
                         max_contribution = 0
                     if min_contribution <= contribution <= max_contribution:
