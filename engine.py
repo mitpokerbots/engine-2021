@@ -425,9 +425,9 @@ class Player():
             if clause[1] == 'R':
                 amount = int(clause[2:])
                 max_raise = board_state.raise_bounds(active, stacks)[1]
-                if board_states.pips[1-active] < amount <= max_raise:
+                if board_state.pips[1-active] < amount <= max_raise:
                     return action(amount)
-                elif board_states.pips[1-active] == amount:
+                elif board_state.pips[1-active] == amount:
                     return CallAction()
             elif clause[1] == 'A':
                 cards_strings = clause[2:].split(',')
