@@ -369,9 +369,11 @@ class Player():
                             for i in range(NUM_BOARDS):
                                 if not isinstance(actions[i], RaiseAction):
                                     continue
-                                min_raise = round_state.board_states[i].raise_bounds(active, stacks)[0]
-                                legal_actions = board_state.legal_actions(active, stacks)
-                                actions[i] = actions[i] if actions[i].amount >= min_raise else (CheckAction() if CheckAction in legal_actions else FoldAction())
+                                min_raise = round_state.board_states[i].raise_bounds(active, round_state.stacks)[0]
+                                legal_actions = round_state.board_states[i].legal_actions(active, round_state.stacks)
+                                if actions[i].amount < min_raise:
+                                    game_log.append(self.name + ' did not meet minimum raise amount on board {}'.format(i+1))
+                                    actions[i] = CallAction() if CallAction in legal_actions else CheckAction()
                         if opp_continue_cost <= opp_stack:
                             return actions
                         else:
