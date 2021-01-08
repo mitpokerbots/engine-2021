@@ -363,7 +363,15 @@ class Player():
                             contribution += round_state.board_states[i].pips[1-active] - round_state.board_states[i].pips[active]
                     max_contribution = round_state.stacks[active] if isinstance(round_state, RoundState) else 0
                     opp_stack = round_state.stacks[1-active] if isinstance(round_state, RoundState) else 0
+                    all_in_flag = (contribution == max_contribution)
                     if 0 <= contribution <= max_contribution:
+                        if not all_in_flag:
+                            for i in range(NUM_BOARDS):
+                                if not isinstance(actions[i], RaiseAction):
+                                    continue
+                                min_raise = round_state.board_states[i].raise_bounds(active, stacks)[0]
+                                legal_actions = board_state.legal_actions(active, stacks)
+                                actions[i] = actions[i] if actions[i].amount >= min_raise else (CheckAction() if CheckAction in legal_actions else FoldAction())
                         if opp_continue_cost <= opp_stack:
                             return actions
                         else:
@@ -414,11 +422,11 @@ class Player():
         if action in legal_actions:
             if clause[1] == 'R':
                 amount = int(clause[2:])
-                min_raise, max_raise = board_state.raise_bounds(active, stacks)
-                raise_delta = amount - board_state.pips[active]
-                min_raise = 0 if stacks[active] - raise_delta == 0 else min_raise
-                if min_raise <= amount <= max_raise:
+                max_raise = board_state.raise_bounds(active, stacks)[1]
+                if board_states.pips[1-active] < amount <= max_raise:
                     return action(amount)
+                elif board_states.pips[1-active] == amount:
+                    return CallAction()
             elif clause[1] == 'A':
                 cards_strings = clause[2:].split(',')
                 cards = [eval7.Card(s) for s in cards_strings]
