@@ -219,11 +219,13 @@ RoundState::proceed(const std::array<Action, NUM_BOARDS> &actions) const {
 
   newStacks[active] = newStacks[active] - contribution;
 
-  std::array<bool, NUM_BOARDS> settled = {true};
-  for (auto i = 0; i < NUM_BOARDS; ++i)
-    if (auto bs =
-            std::dynamic_pointer_cast<const BoardState>(newBoardStates[i]))
+  std::array<bool, NUM_BOARDS> settled = {};
+  for (auto i = 0; i < NUM_BOARDS; ++i) {
+    if (auto bs = std::dynamic_pointer_cast<const BoardState>(newBoardStates[i]))
       settled[i] = bs->settled;
+    else
+      settled[i] = true;
+  }
 
   auto state = std::make_shared<RoundState>(
       button + 1, street, std::move(newStacks), hands,
