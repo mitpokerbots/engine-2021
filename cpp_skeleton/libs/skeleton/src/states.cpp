@@ -45,7 +45,7 @@ RaiseBounds BoardState::raiseBounds(int button,
 
   auto continueCost = pips[1 - active] - pips[active];
   auto maxContribution =
-      std::max(stacks[active], stacks[1 - active] + continueCost);
+      std::min(stacks[active], stacks[1 - active] + continueCost);
   auto minContribution = std::min(
       maxContribution, continueCost + std::max(continueCost, BIG_BLIND));
   return {pips[active] + minContribution, pips[active] + maxContribution};
