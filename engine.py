@@ -374,6 +374,8 @@ class Player():
                                 if actions[i].amount < min_raise:
                                     game_log.append(self.name + ' did not meet minimum raise amount on board {}'.format(i+1))
                                     actions[i] = CallAction() if CallAction in legal_actions else CheckAction()
+                        elif 0 < contribution:
+                            game_log.append(self.name + ' went all in')
                         if opp_continue_cost <= opp_stack:
                             return actions
                         else:
