@@ -523,6 +523,7 @@ class Game():
         previous_round = round_state.previous_state
         log_message_zero = [''] * NUM_BOARDS
         log_message_one = [''] * NUM_BOARDS
+        winnings = [0, 0]
         for i in range(NUM_BOARDS):
             previous_board = previous_round.board_states[i].previous_state
             if previous_board.reveal:
@@ -533,8 +534,14 @@ class Game():
             else:
                 log_message_zero[i] = str(i+1) + 'O'
                 log_message_one[i] = str(i+1) + 'O'
+            winnings[0] += previous_round.board_states[i].deltas[0]
+            winnings[1] += previous_round.board_states[i].deltas[1]
         self.player_messages[0].append(';'.join(log_message_zero))
         self.player_messages[1].append(';'.join(log_message_one))
+        if winnings[0] == 0:
+            self.log.append(players[1].name + " sweeps")
+        elif winnings[1] == 0:
+            self.log.append(players[0].name + " sweeps")
         self.log.append('{} awarded {}'.format(players[0].name, round_state.deltas[0]))
         self.log.append('{} awarded {}'.format(players[1].name, round_state.deltas[1]))
         log_messages = ['D' + str(round_state.deltas[0]), 'D' + str(round_state.deltas[1])]
