@@ -30,6 +30,7 @@ CCARDS = lambda cards: ','.join(map(str, cards))
 PCARDS = lambda cards: '[{}]'.format(' '.join(map(str, cards)))
 PVALUE = lambda name, value: ', {} ({})'.format(name, value)
 STATUS = lambda players: ''.join([PVALUE(p.name, p.bankroll) for p in players])
+TABLE_STATUS = lambda players, i: ''.join([PVALUE(p.name, p.table_winnings[i]) for p in players])
 POTVAL = lambda value: ', ({})'.format(value)
 
 # Socket encoding scheme:
@@ -211,6 +212,7 @@ class Player():
         self.path = path
         self.game_clock = STARTING_GAME_CLOCK
         self.bankroll = 0
+        self.table_winnings = [0] * NUM_BOARDS
         self.commands = None
         self.bot_subprocess = None
         self.socketfile = None
@@ -536,6 +538,8 @@ class Game():
                 log_message_one[i] = str(i+1) + 'O'
             winnings[0] += previous_round.board_states[i].deltas[0]
             winnings[1] += previous_round.board_states[i].deltas[1]
+            players[0].table_winnings[i] += previous_round.board_states[i].deltas[0]
+            players[1].table_winnings[i] += previous_round.board_states[i].deltas[1]
         self.player_messages[0].append(';'.join(log_message_zero))
         self.player_messages[1].append(';'.join(log_message_one))
         if winnings[0] == 0:
@@ -598,6 +602,8 @@ class Game():
             players = players[::-1]
         self.log.append('')
         self.log.append('Final' + STATUS(players))
+        for i in range(NUM_BOARDS):
+            self.log.append('Table ' + str(i+1) + TABLE_STATUS(players, i))
         for player in players:
             player.stop()
         name = GAME_LOG_FILENAME + '.txt'
